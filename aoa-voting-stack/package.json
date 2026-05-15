@@ -1,0 +1,27 @@
+{
+  "name": "aoa-voting-stack",
+  "version": "1.0.0",
+  "bin": {
+    "aoa-voting-stack": "bin/aoa-voting-stack.ts"
+  },
+  "scripts": {
+    "cdk": "cdk",
+    "build": "tsc --build",
+    "watch": "tsc --build --watch",
+    "test": "jest",
+    "cdk:deploy": "cdk deploy"
+  },
+  "devDependencies": {
+    "aws-cdk": "^2.0.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "ts-jest": "^29.0.0"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.0.0",
+    "constructs": "^10.0.0",
+    "aws-sdk": "^2.1553.0"
+  }
+}

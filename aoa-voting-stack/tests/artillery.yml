@@ -1,0 +1,61 @@
+# Replace JWT_TOKEN with real cognito token before running
+# Get token via: Auth.currentSession() in browser console or amplify Auth
+
+# Configuration: replace these values
+config:
+  target: "https://YOUR_API_ID.execute-api.US-EAST-1.amazonaws.com/production"
+  phases:
+    - duration: 90
+      arrivalRate: 3.33  # 300 users / 90 seconds
+      name: "Burst voting simulation"
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      Authorization: "JWT_TOKEN"  # <-- REPLACE THIS
+
+scenarios:
+  # Scenario 1: Normal voting behavior
+  - name: "Normal Voting"
+    flow:
+      - loop:
+          - post:
+              url: "/vote"
+              json:
+                proposalId: "aoa-2024"
+                voteChoice: "{{ choices(['YES', 'NO']) }}"
+              expect:
+                - statusCode: 200
+                - statusCode: 409
+          - repeat: 5  # Each user makes 5 vote attempts
+
+  # Scenario 2: 20% chance of 5xx (test idempotency retry logic)
+  - name: "5xx Error Injection (20%)"
+    flow:
+      - loop:
+          - post:
+              url: "/vote"
+              json:
+                proposalId: "aoa-2024-injection"
+                voteChoice: "{{ choices(['YES', 'NO']) }}"
+              expect:
+                - statusCode: 200
+                - statusCode: 409
+                - statusCode: 500
+          - repeat: 5
+          - random:
+              weight: 20
+              - log: "Injected 5xx error simulation"
+              - setVariable: { name: "testIdempotency", value: true }
+
+  # Scenario 3: Error handling test
+  - name: "Error Handling"
+    flow:
+      - post:
+          url: "/vote"
+          json:
+            proposalId: "aoa-2024"
+            voteChoice: "YES"
+      - log: "Response status: {{ $response.statusCode }}"
+      - if: "status >= 500"
+        then:
+          - log: "5xx error detected, testing retry logic"

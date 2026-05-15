@@ -1,0 +1,28 @@
+{
+  "app": "npx ts-node --prefer-inline bin/aoa-voting-stack.ts",
+  "watch": {
+    "include": ["**"]
+  },
+  "context": {
+    "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
+    "@aws-cdk/core:checkSecretUsage": true,
+    "@aws-cdk/core:target-partitions": ["aws", "aws-cn"],
+    "@aws-cdk-containers/ecs-service-extensions:enableDefaultLogDriver": true,
+    "@aws-cdk/aws-ec2:uniqueImdsId": true,
+    "@aws-cdk/aws-ecs:enableMultiInstanceFeature": true,
+    "@aws-cdk/aws-ecs:removeDefaultApplicationClustering": true,
+    "@aws-cdk/aws-iam:importedRoleStackTraceForDebugging": true,
+    "@aws-cdk/aws-s3:applyDestroyEmptyBucket": true,
+    "@aws-cdk/aws-s3:ignoreEmpty Buckets": true,
+    "@aws-cdk/aws-s3:useOriginInfo": true,
+    "@aws-cdk/aws-s3-assets:allowCreateInProduction": true,
+    "@aws-cdk/aws-s3-assets:useAssetStorageLocationFromMetadata": true,
+    "@aws-cdk/aws-secretsmanager:useAudienceFromSecretName": true,
+    "@aws-cdk/aws-cloudformation:useCfnFieldType": true,
+    "@aws-cdk/aws-codepipeline:usePipelineType": true,
+    "@aws-cdk/custom-resources:validateLambdaSize": true,
+    "@aws-cdk/aws-logs:blockUnusedCredentials": true,
+    "@aws-cdk/aws-events:useEventRole": true,
+    "@aws-cdk/aws-sqs:queueArn": true
+  }
+}
