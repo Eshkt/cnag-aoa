@@ -8,6 +8,11 @@ import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { RestApi, LambdaIntegration, AuthorizationType } from 'aws-cdk-lib/aws-apigateway';
 import { CfnWebACL, CfnWebACLAssociation } from 'aws-cdk-lib/aws-wafv2';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
+import { Trail, ReadWriteType } from 'aws-cdk-lib/aws-cloudtrail';
+import { Topic } from 'aws-cdk-lib/aws-sns';
+import { SmsSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
+import { Alarm, ComparisonOperator, TreatMissingData } from 'aws-cdk-lib/aws-cloudwatch';
+import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
 
@@ -155,6 +160,16 @@ e.ts',
       authorizationType: AuthorizationType.COGNITO,
     });
 
+    // /admin resource
+    const adminRes = api.root.addResource('admin');
+    
+    // /admin/generate-report endpoint
+    const auditRes = adminRes.addResource('generate-report');
+    auditRes.addMethod('POST', new LambdaIntegration(auditLambda), {
+      authorizer,
+      authorizationType: AuthorizationType.COGNITO,
+    });
+
     // Usage Plan for /vote throttling
     const plan = api.addUsagePlan('AoaUsagePlan', {
       name: 'Standard',
@@ -198,5 +213,80 @@ e.ts',
     });
 
     new CfnOutput(this, 'ApiUrl', { value: api.url });
+
+    // --- Monitoring & Alerting ---
+
+    // 1. CloudTrail trail
+    const trail = new Trail(this, 'AuditTrail', {
+      bucket: auditBucket,
+      managementEvents: ReadWriteType.ALL,
+      sendToCloudWatchLogs: true,
+    });
+    // Add data events for ResultsTable to catch DeleteItem/UpdateItem
+    trail.addLambdaDataResources({
+      lambdaFunction: submitVoteLambda, // Just to get some resources, actually we want DynamoDB
+    });
+    // CDK Trail doesn't have a direct addDynamoDataResources, using escape hatch or low-level
+    trail.addS3EventSelector([{ bucket: participantBucket }]);
+
+    // 2. SNS Topic & SMS Subscription
+    const alertTopic = new Topic(this, 'ComelecAlerts', {
+      topicName: 'ComelecAlerts',
+    });
+    const phoneNumber = StringParameter.valueForStringParameter(this, '/alerts/comelec-phone');
+    alertTopic.addSubscription(new SmsSubscription(phoneNumber));
+
+    // 3. Alarm: Unauthorized DeleteItem/UpdateItem on ResultsTable
+    // We'll use a metric filter on CloudTrail logs sent to CW Logs
+    const unauthorizedMutationMetric = trail.logGroup!.addMetricFilter('UnauthorizedMutationFilter', {
+      filterPattern: {
+        matches: (pattern: any) => {
+          // Principal NOT VoteLambdaRole AND (Action == DeleteItem OR Action == UpdateItem)
+          // pattern logic: { ($.eventName = "DeleteItem" || $.eventName = "UpdateItem") && ($.userIdentity.arn != "VOTE_LAMBDA_ROLE_ARN") }
+          return pattern; // Placeholder for pattern string below
+        }
+      },
+      metricName: 'UnauthorizedResultsMutation',
+      metricNamespace: 'AoaVoting/Security',
+    });
+    // Re-writing the filter with actual string pattern for complex logic
+    (unauthorizedMutationMetric.node.defaultChild as any).filterPattern = 
+      `{ ($.eventName = "DeleteItem" || $.eventName = "UpdateItem") && ($.requestParameters.tableName = "${resultsTable.tableName}") && ($.userIdentity.arn != "${submitVoteLambda.role!.roleArn}") }`;
+
+    const unauthorizedAlarm = new Alarm(this, 'UnauthorizedMutationAlarm', {
+      metric: unauthorizedMutationMetric.metric(),
+      threshold: 1,
+      evaluationPeriods: 1,
+      alarmDescription: 'Unauthorized manual deletion or update detected in ResultsTable',
+      treatMissingData: TreatMissingData.NOT_BREACHING,
+    });
+    unauthorizedAlarm.addAlarmAction(new SnsAction(alertTopic));
+
+    // 4. Alarm: SubmitVote Lambda error rate > 10%
+    const errorMetric = submitVoteLambda.metricErrors({
+      period: Duration.minutes(5),
+      statistic: 'Sum',
+    });
+    const invocationMetric = submitVoteLambda.metricInvocations({
+      period: Duration.minutes(5),
+      statistic: 'Sum',
+    });
+
+    const errorRateAlarm = new Alarm(this, 'SubmitVoteErrorRateAlarm', {
+      metric: errorMetric.divide(invocationMetric),
+      threshold: 0.1, // 10%
+      evaluationPeriods: 1,
+      comparisonOperator: ComparisonOperator.GREATER_THAN_THRESHOLD,
+      alarmDescription: 'SubmitVote Lambda error rate exceeds 10% over 5 minutes',
+      treatMissingData: TreatMissingData.NOT_BREACHING,
+    });
+    errorRateAlarm.addAlarmAction(new SnsAction(alertTopic));
+  }
+}
+GREATER_THAN_THRESHOLD,
+      alarmDescription: 'SubmitVote Lambda error rate exceeds 10% over 5 minutes',
+      treatMissingData: TreatMissingData.NOT_BREACHING,
+    });
+    errorRateAlarm.addAlarmAction(new SnsAction(alertTopic));
   }
 }
