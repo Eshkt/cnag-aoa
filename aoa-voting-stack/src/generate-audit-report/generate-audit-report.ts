@@ -2,7 +2,7 @@ import { Handler } from 'aws-lambda';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { SSMClient, GetParameterHistoryCommand, GetParameterCommand } from '@aws-sdk/client-ssm';
-import { S3Client, PutObjectCommand, GetObjectVersionCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 
 const ddbClient = new DynamoDBClient({ region: process.env.AWS_REGION });
@@ -17,19 +17,35 @@ const AUDIT_BUCKET = 'audit-archive-bucket';
 const VOTING_WINDOW_PARAM = '/voting/window-open';
 
 export const handler: Handler = async () => {
-  // 1. Scan HasVotedTable
-  const hasVotedResp = await ddbDocClient.send(new ScanCommand({
-    TableName: HAS_VOTED_TABLE,
-    ProjectionExpression: 'voterId',
-  }));
-  const voterHashes = (hasVotedResp.Items || []).map((item: any) => item.voterId);
+  // 1. Scan HasVotedTable (paginated)
+  const voterHashes: string[] = [];
+  let hasVotedKey: any = undefined;
+  do {
+    const resp = await ddbDocClient.send(new ScanCommand({
+      TableName: HAS_VOTED_TABLE,
+      ProjectionExpression: 'voterId',
+      ExclusiveStartKey: hasVotedKey,
+    }));
+    if (resp.Items) {
+      voterHashes.push(...resp.Items.map((item: any) => item.voterId));
+    }
+    hasVotedKey = resp.LastEvaluatedKey;
+  } while (hasVotedKey);
   const totalVotes = voterHashes.length;
 
-  // 2. Scan ResultsTable
-  const resultsResp = await ddbDocClient.send(new ScanCommand({
-    TableName: RESULTS_TABLE,
-  }));
-  const votes: any[] = resultsResp.Items || [];
+  // 2. Scan ResultsTable (paginated)
+  const votes: any[] = [];
+  let resultsKey: any = undefined;
+  do {
+    const resp = await ddbDocClient.send(new ScanCommand({
+      TableName: RESULTS_TABLE,
+      ExclusiveStartKey: resultsKey,
+    }));
+    if (resp.Items) {
+      votes.push(...resp.Items);
+    }
+    resultsKey = resp.LastEvaluatedKey;
+  } while (resultsKey);
 
   // Count yes/no per proposalId
   const proposalResults: Record<string, { yes: number; no: number }> = {};
@@ -238,8 +254,5 @@ function generateHtmlReport(report: any, jsonReportName: string): string {
   </div>
 </body>
 </html>
-  `.trim();
-}
-ml>
   `.trim();
 }

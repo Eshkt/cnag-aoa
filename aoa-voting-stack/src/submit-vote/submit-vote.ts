@@ -117,6 +117,14 @@ export const handler: APIGatewayProxyHandler = async (event): Promise<APIGateway
             },
           },
         },
+        {
+          Update: {
+            TableName: HAS_VOTED_TABLE,
+            Key: { voterId: 'COUNTER' },
+            UpdateExpression: 'ADD voteCount :inc',
+            ExpressionAttributeValues: { ':inc': 1 },
+          },
+        },
       ],
     }));
   } catch (err: any) {

@@ -54,9 +54,10 @@ export default function Dashboard() {
         await fetchStatus();
         await fetchResults();
 
-        // Poll status every 10 seconds
+        // Poll status and results every 10 seconds
         const interval = setInterval(async () => {
           await fetchStatus();
+          await fetchResults();
         }, 10000);
 
         return () => clearInterval(interval);

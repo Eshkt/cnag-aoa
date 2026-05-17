@@ -1,6 +1,7 @@
 import { Stack, StackProps, RemovalPolicy, Duration } from 'aws-cdk-lib';
 import { Table, Billing, AttributeType } from 'aws-cdk-lib/aws-dynamodb';
 import { Bucket, ObjectLockRetention, BlockPublicAccess } from 'aws-cdk-lib/aws-s3';
+import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
 
@@ -47,5 +48,12 @@ export class AoaVotingStack extends Stack {
     // Output table names for reference
     new CfnOutput(this, 'HasVotedTableName', { value: hasVotedTable.tableName });
     new CfnOutput(this, 'ResultsTableName', { value: resultsTable.tableName });
+
+    // Voting window parameter
+    new StringParameter(this, 'VotingWindowParameter', {
+      parameterName: '/voting/window-open',
+      stringValue: 'false',
+      description: 'controls voting window. set to true to open, false to close.',
+    });
   }
 }

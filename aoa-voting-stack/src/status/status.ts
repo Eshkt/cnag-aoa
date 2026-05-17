@@ -32,16 +32,19 @@ export const handler: APIGatewayProxyHandler = async (): Promise<APIGatewayProxy
     }
   }
 
-  // Count votes from HasVotedTable
+  // Get vote count from COUNTER item (atomic)
   let totalVotes = 0;
   try {
-    const scanResp = await ddbDocClient.send(new ScanCommand({
+    const counterResp = await ddbDocClient.send(new UpdateCommand({
       TableName: HAS_VOTED_TABLE,
-      Select: 'COUNT',
+      Key: { voterId: 'COUNTER' },
+      UpdateExpression: 'ADD voteCount :zero',
+      ExpressionAttributeValues: { ':zero': 0 },
+      ReturnValues: 'UPDATED_NEW',
     }));
-    totalVotes = scanResp.Count || 0;
+    totalVotes = counterResp.Attributes?.voteCount || 0;
   } catch (err) {
-    console.error('Failed to count votes:', err);
+    console.error('Failed to get vote count:', err);
   }
 
   return {
