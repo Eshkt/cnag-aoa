@@ -2,6 +2,9 @@ import { Stack, StackProps, RemovalPolicy, Duration } from 'aws-cdk-lib';
 import { Table, Billing, AttributeType } from 'aws-cdk-lib/aws-dynamodb';
 import { Bucket, ObjectLockRetention, BlockPublicAccess } from 'aws-cdk-lib/aws-s3';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
+import { UserPool, VerificationEmailStyle } from 'aws-cdk-lib/aws-cognito';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
 
@@ -55,5 +58,35 @@ export class AoaVotingStack extends Stack {
       stringValue: 'false',
       description: 'controls voting window. set to true to open, false to close.',
     });
+
+    // Pre-signup Lambda Checker
+    const preSignupLambda = new NodejsFunction(this, 'PreSignupChecker', {
+      entry: 'src/pre-signup-checker/pre-signup-checker.ts',
+      handler: 'handler',
+      runtime: Runtime.NODEJS_20_X,
+      environment: {
+        PARTICIPANT_BUCKET: participantBucket.bucketName,
+      },
+    });
+
+    participantBucket.grantRead(preSignupLambda);
+
+    // Cognito User Pool
+    const userPool = new UserPool(this, 'AoaUserPool', {
+      userPoolName: 'aoa-voting-user-pool',
+      selfSignUpEnabled: true,
+      signInAliases: { email: true },
+      autoVerify: { email: true },
+      userVerification: {
+        emailSubject: 'Verify your email for CNAG-CICS AOA Voting',
+        emailBody: 'Thanks for signing up! Your verification code is {####}',
+        emailStyle: VerificationEmailStyle.CODE,
+      },
+      lambdaTriggers: {
+        preSignUp: preSignupLambda,
+      },
+    });
+
+    new CfnOutput(this, 'UserPoolId', { value: userPool.userPoolId });
   }
 }
