@@ -6,8 +6,11 @@ config:
   target: "https://YOUR_API_ID.execute-api.US-EAST-1.amazonaws.com/production"
   phases:
     - duration: 90
-      arrivalRate: 3.33  # 300 users / 90 seconds
-      name: "Burst voting simulation"
+      arrivalRate: 5
+      name: "Burst voting simulation (1.5x peak)"
+    - duration: 180
+      arrivalRate: 50
+      name: "Sustained high load"
   defaults:
     headers:
       Content-Type: "application/json"

@@ -1,4 +1,5 @@
 import { Handler } from 'aws-lambda';
+import { createHash } from 'crypto';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { SSMClient, GetParameterHistoryCommand, GetParameterCommand } from '@aws-sdk/client-ssm';
@@ -111,6 +112,12 @@ export const handler: Handler = async () => {
     totalEligibleVoters = 200; // Fallback
   }
 
+  // 5.6. Compute ResultsTable Checksum
+  const sortedVotes = [...votes].sort((a, b) => a.voteId.localeCompare(b.voteId));
+  const resultTableChecksum = createHash('sha256')
+    .update(JSON.stringify(sortedVotes))
+    .digest('hex');
+
   // 6. Build JSON report
   const report = {
     reportGeneratedAt,
@@ -126,6 +133,9 @@ export const handler: Handler = async () => {
       totalEligibleVoters,
       totalVotesCast: totalVotes,
       quorumPercentage: totalEligibleVoters > 0 ? Math.round((totalVotes / totalEligibleVoters) * 100) : 0,
+    },
+    integrityProof: {
+      resultTableChecksum,
     },
     proposalResults: proposalResults,
     voterHashes: voterHashes,

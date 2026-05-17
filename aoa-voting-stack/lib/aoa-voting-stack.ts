@@ -2,9 +2,12 @@ import { Stack, StackProps, RemovalPolicy, Duration } from 'aws-cdk-lib';
 import { Table, Billing, AttributeType } from 'aws-cdk-lib/aws-dynamodb';
 import { Bucket, ObjectLockRetention, BlockPublicAccess } from 'aws-cdk-lib/aws-s3';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
-import { UserPool, VerificationEmailStyle } from 'aws-cdk-lib/aws-cognito';
+import { UserPool, VerificationEmailStyle, CognitoUserPoolsAuthorizer } from 'aws-cdk-lib/aws-cognito';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { RestApi, LambdaIntegration, AuthorizationType } from 'aws-cdk-lib/aws-apigateway';
+import { CfnWebACL, CfnWebACLAssociation } from 'aws-cdk-lib/aws-wafv2';
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
 
@@ -74,19 +77,126 @@ export class AoaVotingStack extends Stack {
     // Cognito User Pool
     const userPool = new UserPool(this, 'AoaUserPool', {
       userPoolName: 'aoa-voting-user-pool',
-      selfSignUpEnabled: true,
+      selfSignUpEnabled: false,
       signInAliases: { email: true },
       autoVerify: { email: true },
-      userVerification: {
-        emailSubject: 'Verify your email for CNAG-CICS AOA Voting',
-        emailBody: 'Thanks for signing up! Your verification code is {####}',
-        emailStyle: VerificationEmailStyle.CODE,
+      passwordPolicy: {
+        minLength: 8,
+        requireLowercase: true,
+        requireUppercase: true,
+        requireDigits: true,
+        requireSymbols: false,
       },
       lambdaTriggers: {
         preSignUp: preSignupLambda,
       },
     });
 
+    const userPoolClient = userPool.addClient('AoaUserPoolClient', {
+      generateSecret: false,
+      authFlows: {
+        userSrp: true,
+      },
+    });
+
     new CfnOutput(this, 'UserPoolId', { value: userPool.userPoolId });
+    new CfnOutput(this, 'UserPoolClientId', { value: userPoolClient.userPoolClientId });
+  }
+}
+e.ts',
+      runtime: Runtime.NODEJS_20_X,
+    });
+    hasVotedTable.grantReadWriteData(submitVoteLambda);
+    resultsTable.grantWriteData(submitVoteLambda);
+    hmacSecret.grantRead(submitVoteLambda);
+
+    // 2. Status Lambda
+    const statusLambda = new NodejsFunction(this, 'StatusFunction', {
+      entry: 'src/status/status.ts',
+      runtime: Runtime.NODEJS_20_X,
+    });
+    hasVotedTable.grantReadWriteData(statusLambda); // Needs update item for atomic count
+
+    // 3. Results Lambda
+    const resultsLambda = new NodejsFunction(this, 'ResultsFunction', {
+      entry: 'src/results/results.ts',
+      runtime: Runtime.NODEJS_20_X,
+    });
+    resultsTable.grantReadData(resultsLambda);
+
+    // API Gateway
+    const api = new RestApi(this, 'AoaApi', {
+      restApiName: 'AOA Voting API',
+      deployOptions: {
+        throttlingRateLimit: 100,
+        throttlingBurstLimit: 200,
+      },
+    });
+
+    const authorizer = new CognitoUserPoolsAuthorizer(this, 'AoaAuthorizer', {
+      cognitoUserPools: [userPool],
+    });
+
+    // /vote endpoint
+    const voteRes = api.root.addResource('vote');
+    voteRes.addMethod('POST', new LambdaIntegration(submitVoteLambda), {
+      authorizer,
+      authorizationType: AuthorizationType.COGNITO,
+    });
+
+    // /status endpoint
+    const statusRes = api.root.addResource('status');
+    statusRes.addMethod('GET', new LambdaIntegration(statusLambda));
+
+    // /results endpoint
+    const resultsRes = api.root.addResource('results');
+    resultsRes.addMethod('GET', new LambdaIntegration(resultsLambda), {
+      authorizer,
+      authorizationType: AuthorizationType.COGNITO,
+    });
+
+    // Usage Plan for /vote throttling
+    const plan = api.addUsagePlan('AoaUsagePlan', {
+      name: 'Standard',
+      throttle: {
+        rateLimit: 10,
+        burstLimit: 20,
+      },
+    });
+    plan.addApiStage({ stage: api.deploymentStage });
+
+    // WAF WebACL
+    const waf = new CfnWebACL(this, 'AoaWaf', {
+      defaultAction: { allow: {} },
+      scope: 'REGIONAL',
+      visibilityConfig: {
+        cloudWatchMetricsEnabled: true,
+        metricName: 'AoaWafMetric',
+        sampledRequestsEnabled: true,
+      },
+      rules: [{
+        name: 'RateLimit',
+        priority: 1,
+        action: { block: {} },
+        statement: {
+          rateBasedStatement: {
+            limit: 100,
+            aggregateKeyType: 'IP',
+          },
+        },
+        visibilityConfig: {
+          cloudWatchMetricsEnabled: true,
+          metricName: 'AoaRateLimitMetric',
+          sampledRequestsEnabled: true,
+        },
+      }],
+    });
+
+    new CfnWebACLAssociation(this, 'AoaWafAssoc', {
+      resourceArn: `arn:aws:apigateway:${this.region}::/restapis/${api.restApiId}/stages/${api.deploymentStage.stageName}`,
+      webAclArn: waf.attrArn,
+    });
+
+    new CfnOutput(this, 'ApiUrl', { value: api.url });
   }
 }
