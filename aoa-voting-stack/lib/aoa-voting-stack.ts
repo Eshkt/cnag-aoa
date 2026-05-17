@@ -1,4 +1,5 @@
 import { Stack, StackProps, RemovalPolicy, Duration } from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { Table, Billing, AttributeType } from 'aws-cdk-lib/aws-dynamodb';
 import { Bucket, ObjectLockRetention, BlockPublicAccess } from 'aws-cdk-lib/aws-s3';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
@@ -56,237 +57,157 @@ export class AoaVotingStack extends Stack {
       removalPolicy: RemovalPolicy.RETAIN,
     });
 
-    // Output table names for reference
-    new CfnOutput(this, 'HasVotedTableName', { value: hasVotedTable.tableName });
-    new CfnOutput(this, 'ResultsTableName', { value: resultsTable.tableName });
-
     // Voting window parameter
-    new StringParameter(this, 'VotingWindowParameter', {
+    const windowParam = new StringParameter(this, 'VotingWindowParameter', {
       parameterName: '/voting/window-open',
       stringValue: 'false',
       description: 'controls voting window. set to true to open, false to close.',
     });
 
-    // Pre-signup Lambda Checker
+    // HMAC Secret
+    const hmacSecret = Secret.fromSecretNameV2(this, 'HmacSecret', 'hmac-signing-key');
+
+    // Lambdas
     const preSignupLambda = new NodejsFunction(this, 'PreSignupChecker', {
       entry: 'src/pre-signup-checker/pre-signup-checker.ts',
-      handler: 'handler',
       runtime: Runtime.NODEJS_20_X,
-      environment: {
-        PARTICIPANT_BUCKET: participantBucket.bucketName,
-      },
+      environment: { PARTICIPANT_BUCKET: participantBucket.bucketName },
     });
-
     participantBucket.grantRead(preSignupLambda);
 
-    // Cognito User Pool
-    const userPool = new UserPool(this, 'AoaUserPool', {
-      userPoolName: 'aoa-voting-user-pool',
-      selfSignUpEnabled: false,
-      signInAliases: { email: true },
-      autoVerify: { email: true },
-      passwordPolicy: {
-        minLength: 8,
-        requireLowercase: true,
-        requireUppercase: true,
-        requireDigits: true,
-        requireSymbols: false,
-      },
-      lambdaTriggers: {
-        preSignUp: preSignupLambda,
-      },
-    });
-
-    const userPoolClient = userPool.addClient('AoaUserPoolClient', {
-      generateSecret: false,
-      authFlows: {
-        userSrp: true,
-      },
-    });
-
-    new CfnOutput(this, 'UserPoolId', { value: userPool.userPoolId });
-    new CfnOutput(this, 'UserPoolClientId', { value: userPoolClient.userPoolClientId });
-  }
-}
-e.ts',
+    const submitVoteLambda = new NodejsFunction(this, 'SubmitVoteFunction', {
+      entry: 'src/submit-vote/submit-vote.ts',
       runtime: Runtime.NODEJS_20_X,
     });
     hasVotedTable.grantReadWriteData(submitVoteLambda);
     resultsTable.grantWriteData(submitVoteLambda);
     hmacSecret.grantRead(submitVoteLambda);
 
-    // 2. Status Lambda
     const statusLambda = new NodejsFunction(this, 'StatusFunction', {
       entry: 'src/status/status.ts',
       runtime: Runtime.NODEJS_20_X,
     });
-    hasVotedTable.grantReadWriteData(statusLambda); // Needs update item for atomic count
+    hasVotedTable.grantReadWriteData(statusLambda);
 
-    // 3. Results Lambda
     const resultsLambda = new NodejsFunction(this, 'ResultsFunction', {
       entry: 'src/results/results.ts',
       runtime: Runtime.NODEJS_20_X,
     });
     resultsTable.grantReadData(resultsLambda);
 
-    // API Gateway
-    const api = new RestApi(this, 'AoaApi', {
-      restApiName: 'AOA Voting API',
-      deployOptions: {
-        throttlingRateLimit: 100,
-        throttlingBurstLimit: 200,
+    const auditLambda = new NodejsFunction(this, 'AuditReportFunction', {
+      entry: 'src/generate-audit-report/generate-audit-report.ts',
+      runtime: Runtime.NODEJS_20_X,
+      timeout: Duration.minutes(1),
+      environment: {
+        PARTICIPANT_BUCKET: participantBucket.bucketName,
+        AUDIT_BUCKET: auditBucket.bucketName,
       },
     });
+    hasVotedTable.grantReadData(auditLambda);
+    resultsTable.grantReadData(auditLambda);
+    participantBucket.grantRead(auditLambda);
+    auditBucket.grantReadWrite(auditLambda);
 
-    const authorizer = new CognitoUserPoolsAuthorizer(this, 'AoaAuthorizer', {
-      cognitoUserPools: [userPool],
+    const toggleWindowLambda = new NodejsFunction(this, 'ToggleWindowFunction', {
+      entry: 'src/toggle-window/toggle-window.ts',
+      runtime: Runtime.NODEJS_20_X,
+    });
+    windowParam.grantRead(toggleWindowLambda);
+    // Needs write too
+    const windowParamArn = `arn:aws:ssm:\${this.region}:\${this.account}:parameter/voting/window-open`;
+    toggleWindowLambda.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['ssm:PutParameter'],
+      resources: [windowParamArn],
+    }));
+
+    // Cognito
+    const userPool = new UserPool(this, 'AoaUserPool', {
+      userPoolName: 'aoa-voting-user-pool',
+      selfSignUpEnabled: false,
+      signInAliases: { email: true },
+      autoVerify: { email: true },
+      passwordPolicy: { minLength: 8, requireLowercase: true, requireUppercase: true, requireDigits: true },
+      lambdaTriggers: { preSignUp: preSignupLambda },
+    });
+    const userPoolClient = userPool.addClient('AoaUserPoolClient', {
+      generateSecret: false,
+      authFlows: { userSrp: true },
     });
 
-    // /vote endpoint
+    // API Gateway
+    const api = new RestApi(this, 'AoaApi', { restApiName: 'AOA Voting API' });
+    const authorizer = new CognitoUserPoolsAuthorizer(this, 'AoaAuthorizer', { cognitoUserPools: [userPool] });
+
     const voteRes = api.root.addResource('vote');
-    voteRes.addMethod('POST', new LambdaIntegration(submitVoteLambda), {
-      authorizer,
-      authorizationType: AuthorizationType.COGNITO,
-    });
+    voteRes.addMethod('POST', new LambdaIntegration(submitVoteLambda), { authorizer, authorizationType: AuthorizationType.COGNITO });
 
-    // /status endpoint
     const statusRes = api.root.addResource('status');
     statusRes.addMethod('GET', new LambdaIntegration(statusLambda));
 
-    // /results endpoint
     const resultsRes = api.root.addResource('results');
-    resultsRes.addMethod('GET', new LambdaIntegration(resultsLambda), {
-      authorizer,
-      authorizationType: AuthorizationType.COGNITO,
-    });
+    resultsRes.addMethod('GET', new LambdaIntegration(resultsLambda), { authorizer, authorizationType: AuthorizationType.COGNITO });
 
-    // /admin resource
     const adminRes = api.root.addResource('admin');
-    
-    // /admin/generate-report endpoint
-    const auditRes = adminRes.addResource('generate-report');
-    auditRes.addMethod('POST', new LambdaIntegration(auditLambda), {
-      authorizer,
-      authorizationType: AuthorizationType.COGNITO,
-    });
+    adminRes.addResource('generate-report').addMethod('POST', new LambdaIntegration(auditLambda), { authorizer, authorizationType: AuthorizationType.COGNITO });
+    adminRes.addResource('toggle-window').addMethod('POST', new LambdaIntegration(toggleWindowLambda), { authorizer, authorizationType: AuthorizationType.COGNITO });
 
-    // Usage Plan for /vote throttling
-    const plan = api.addUsagePlan('AoaUsagePlan', {
-      name: 'Standard',
-      throttle: {
-        rateLimit: 10,
-        burstLimit: 20,
-      },
-    });
+    const plan = api.addUsagePlan('AoaUsagePlan', { throttle: { rateLimit: 10, burstLimit: 20 } });
     plan.addApiStage({ stage: api.deploymentStage });
 
-    // WAF WebACL
+    // WAF
     const waf = new CfnWebACL(this, 'AoaWaf', {
       defaultAction: { allow: {} },
       scope: 'REGIONAL',
-      visibilityConfig: {
-        cloudWatchMetricsEnabled: true,
-        metricName: 'AoaWafMetric',
-        sampledRequestsEnabled: true,
-      },
+      visibilityConfig: { cloudWatchMetricsEnabled: true, metricName: 'AoaWafMetric', sampledRequestsEnabled: true },
       rules: [{
         name: 'RateLimit',
         priority: 1,
         action: { block: {} },
-        statement: {
-          rateBasedStatement: {
-            limit: 100,
-            aggregateKeyType: 'IP',
-          },
-        },
-        visibilityConfig: {
-          cloudWatchMetricsEnabled: true,
-          metricName: 'AoaRateLimitMetric',
-          sampledRequestsEnabled: true,
-        },
+        statement: { rateBasedStatement: { limit: 100, aggregateKeyType: 'IP' } },
+        visibilityConfig: { cloudWatchMetricsEnabled: true, metricName: 'AoaRateLimitMetric', sampledRequestsEnabled: true },
       }],
     });
-
     new CfnWebACLAssociation(this, 'AoaWafAssoc', {
-      resourceArn: `arn:aws:apigateway:${this.region}::/restapis/${api.restApiId}/stages/${api.deploymentStage.stageName}`,
+      resourceArn: `arn:aws:apigateway:\${this.region}::/restapis/\${api.restApiId}/stages/\${api.deploymentStage.stageName}`,
       webAclArn: waf.attrArn,
     });
 
-    new CfnOutput(this, 'ApiUrl', { value: api.url });
-
-    // --- Monitoring & Alerting ---
-
-    // 1. CloudTrail trail
-    const trail = new Trail(this, 'AuditTrail', {
-      bucket: auditBucket,
-      managementEvents: ReadWriteType.ALL,
-      sendToCloudWatchLogs: true,
-    });
-    // Add data events for ResultsTable to catch DeleteItem/UpdateItem
-    trail.addLambdaDataResources({
-      lambdaFunction: submitVoteLambda, // Just to get some resources, actually we want DynamoDB
-    });
-    // CDK Trail doesn't have a direct addDynamoDataResources, using escape hatch or low-level
-    trail.addS3EventSelector([{ bucket: participantBucket }]);
-
-    // 2. SNS Topic & SMS Subscription
-    const alertTopic = new Topic(this, 'ComelecAlerts', {
-      topicName: 'ComelecAlerts',
-    });
+    // Monitoring & Alerting
+    const trail = new Trail(this, 'AuditTrail', { bucket: auditBucket, managementEvents: ReadWriteType.ALL, sendToCloudWatchLogs: true });
+    const alertTopic = new Topic(this, 'ComelecAlerts', { topicName: 'ComelecAlerts' });
     const phoneNumber = StringParameter.valueForStringParameter(this, '/alerts/comelec-phone');
     alertTopic.addSubscription(new SmsSubscription(phoneNumber));
 
-    // 3. Alarm: Unauthorized DeleteItem/UpdateItem on ResultsTable
-    // We'll use a metric filter on CloudTrail logs sent to CW Logs
     const unauthorizedMutationMetric = trail.logGroup!.addMetricFilter('UnauthorizedMutationFilter', {
-      filterPattern: {
-        matches: (pattern: any) => {
-          // Principal NOT VoteLambdaRole AND (Action == DeleteItem OR Action == UpdateItem)
-          // pattern logic: { ($.eventName = "DeleteItem" || $.eventName = "UpdateItem") && ($.userIdentity.arn != "VOTE_LAMBDA_ROLE_ARN") }
-          return pattern; // Placeholder for pattern string below
-        }
-      },
       metricName: 'UnauthorizedResultsMutation',
       metricNamespace: 'AoaVoting/Security',
     });
-    // Re-writing the filter with actual string pattern for complex logic
     (unauthorizedMutationMetric.node.defaultChild as any).filterPattern = 
-      `{ ($.eventName = "DeleteItem" || $.eventName = "UpdateItem") && ($.requestParameters.tableName = "${resultsTable.tableName}") && ($.userIdentity.arn != "${submitVoteLambda.role!.roleArn}") }`;
+      `{ ($.eventName = "DeleteItem" || $.eventName = "UpdateItem") && ($.requestParameters.tableName = "\${resultsTable.tableName}") && ($.userIdentity.arn != "\${submitVoteLambda.role!.roleArn}") }`;
 
-    const unauthorizedAlarm = new Alarm(this, 'UnauthorizedMutationAlarm', {
+    new Alarm(this, 'UnauthorizedMutationAlarm', {
       metric: unauthorizedMutationMetric.metric(),
       threshold: 1,
       evaluationPeriods: 1,
       alarmDescription: 'Unauthorized manual deletion or update detected in ResultsTable',
       treatMissingData: TreatMissingData.NOT_BREACHING,
-    });
-    unauthorizedAlarm.addAlarmAction(new SnsAction(alertTopic));
+    }).addAlarmAction(new SnsAction(alertTopic));
 
-    // 4. Alarm: SubmitVote Lambda error rate > 10%
-    const errorMetric = submitVoteLambda.metricErrors({
-      period: Duration.minutes(5),
-      statistic: 'Sum',
-    });
-    const invocationMetric = submitVoteLambda.metricInvocations({
-      period: Duration.minutes(5),
-      statistic: 'Sum',
-    });
-
-    const errorRateAlarm = new Alarm(this, 'SubmitVoteErrorRateAlarm', {
-      metric: errorMetric.divide(invocationMetric),
-      threshold: 0.1, // 10%
+    new Alarm(this, 'SubmitVoteErrorRateAlarm', {
+      metric: submitVoteLambda.metricErrors({ period: Duration.minutes(5), statistic: 'Sum' }).divide(submitVoteLambda.metricInvocations({ period: Duration.minutes(5), statistic: 'Sum' })),
+      threshold: 0.1,
       evaluationPeriods: 1,
       comparisonOperator: ComparisonOperator.GREATER_THAN_THRESHOLD,
       alarmDescription: 'SubmitVote Lambda error rate exceeds 10% over 5 minutes',
       treatMissingData: TreatMissingData.NOT_BREACHING,
-    });
-    errorRateAlarm.addAlarmAction(new SnsAction(alertTopic));
-  }
-}
-GREATER_THAN_THRESHOLD,
-      alarmDescription: 'SubmitVote Lambda error rate exceeds 10% over 5 minutes',
-      treatMissingData: TreatMissingData.NOT_BREACHING,
-    });
-    errorRateAlarm.addAlarmAction(new SnsAction(alertTopic));
+    }).addAlarmAction(new SnsAction(alertTopic));
+
+    // Outputs
+    new CfnOutput(this, 'HasVotedTableName', { value: hasVotedTable.tableName });
+    new CfnOutput(this, 'ResultsTableName', { value: resultsTable.tableName });
+    new CfnOutput(this, 'UserPoolId', { value: userPool.userPoolId });
+    new CfnOutput(this, 'UserPoolClientId', { value: userPoolClient.userPoolClientId });
+    new CfnOutput(this, 'ApiUrl', { value: api.url });
   }
 }
