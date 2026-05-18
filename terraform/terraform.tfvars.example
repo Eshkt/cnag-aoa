@@ -1,0 +1,4 @@
+region = "ap-southeast-1"
+account_id = "804887692450"
+comelec_phone_number = "+639000000000"
+stack_name = "AoaVotingStack"
