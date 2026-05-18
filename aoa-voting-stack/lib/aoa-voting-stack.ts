@@ -1,18 +1,19 @@
 import { Stack, StackProps, RemovalPolicy, Duration } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { Table, Billing, AttributeType } from 'aws-cdk-lib/aws-dynamodb';
+import { Table, BillingMode, AttributeType } from 'aws-cdk-lib/aws-dynamodb';
 import { Bucket, ObjectLockRetention, BlockPublicAccess } from 'aws-cdk-lib/aws-s3';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
-import { UserPool, VerificationEmailStyle, CognitoUserPoolsAuthorizer } from 'aws-cdk-lib/aws-cognito';
+import { UserPool, VerificationEmailStyle } from 'aws-cdk-lib/aws-cognito';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import { RestApi, LambdaIntegration, AuthorizationType } from 'aws-cdk-lib/aws-apigateway';
+import { RestApi, LambdaIntegration, AuthorizationType, CognitoUserPoolsAuthorizer } from 'aws-cdk-lib/aws-apigateway';
 import { CfnWebACL, CfnWebACLAssociation } from 'aws-cdk-lib/aws-wafv2';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Trail, ReadWriteType } from 'aws-cdk-lib/aws-cloudtrail';
+import { FilterPattern } from 'aws-cdk-lib/aws-logs';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { SmsSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
-import { Alarm, ComparisonOperator, TreatMissingData } from 'aws-cdk-lib/aws-cloudwatch';
+import { Alarm, ComparisonOperator, TreatMissingData, MathExpression } from 'aws-cdk-lib/aws-cloudwatch';
 import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
@@ -23,7 +24,7 @@ export class AoaVotingStack extends Stack {
 
     // Audit Archive Bucket with Object Lock
     const auditBucket = new Bucket(this, 'AuditArchiveBucket', {
-      bucketName: 'audit-archive-bucket',
+      bucketName: 'audit-archive-bucket-804887692450',
       removalPolicy: RemovalPolicy.RETAIN,
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       objectLockEnabled: true,
@@ -32,7 +33,7 @@ export class AoaVotingStack extends Stack {
 
     // Participant List Bucket
     const participantBucket = new Bucket(this, 'ParticipantListBucket', {
-      bucketName: 'participant-list-bucket',
+      bucketName: 'participant-list-bucket-804887692450',
       versioned: true,
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       removalPolicy: RemovalPolicy.RETAIN,
@@ -40,19 +41,19 @@ export class AoaVotingStack extends Stack {
 
     // Table 1: HasVotedTable - tracks which voters have voted
     const hasVotedTable = new Table(this, 'HasVotedTable', {
-      tableName: 'HasVotedTable',
+      tableName: 'HasVotedTable-804887692450',
       partitionKey: { name: 'voterId', type: AttributeType.STRING },
-      billingMode: Billing.PAY_PER_REQUEST,
+      billingMode: BillingMode.PAY_PER_REQUEST,
       pointInTimeRecovery: true,
       removalPolicy: RemovalPolicy.RETAIN,
     });
 
     // Table 2: ResultsTable - stores votes with proposal and vote IDs
     const resultsTable = new Table(this, 'ResultsTable', {
-      tableName: 'ResultsTable',
+      tableName: 'ResultsTable-804887692450',
       partitionKey: { name: 'proposalId', type: AttributeType.STRING },
       sortKey: { name: 'voteId', type: AttributeType.STRING },
-      billingMode: Billing.PAY_PER_REQUEST,
+      billingMode: BillingMode.PAY_PER_REQUEST,
       pointInTimeRecovery: true,
       removalPolicy: RemovalPolicy.RETAIN,
     });
@@ -65,7 +66,7 @@ export class AoaVotingStack extends Stack {
     });
 
     // HMAC Secret
-    const hmacSecret = Secret.fromSecretNameV2(this, 'HmacSecret', 'hmac-signing-key');
+    const hmacSecret = Secret.fromSecretNameV2(this, 'HmacSecret', 'hmac-signing-key-804887692450');
 
     // Lambdas
     const preSignupLambda = new NodejsFunction(this, 'PreSignupChecker', {
@@ -82,12 +83,14 @@ export class AoaVotingStack extends Stack {
     hasVotedTable.grantReadWriteData(submitVoteLambda);
     resultsTable.grantWriteData(submitVoteLambda);
     hmacSecret.grantRead(submitVoteLambda);
+    windowParam.grantRead(submitVoteLambda);
 
     const statusLambda = new NodejsFunction(this, 'StatusFunction', {
       entry: 'src/status/status.ts',
       runtime: Runtime.NODEJS_20_X,
     });
     hasVotedTable.grantReadWriteData(statusLambda);
+    windowParam.grantRead(statusLambda);
 
     const resultsLambda = new NodejsFunction(this, 'ResultsFunction', {
       entry: 'src/results/results.ts',
@@ -115,7 +118,7 @@ export class AoaVotingStack extends Stack {
     });
     windowParam.grantRead(toggleWindowLambda);
     // Needs write too
-    const windowParamArn = `arn:aws:ssm:\${this.region}:\${this.account}:parameter/voting/window-open`;
+    const windowParamArn = `arn:aws:ssm:${this.region}:${this.account}:parameter/voting/window-open`;
     toggleWindowLambda.addToRolePolicy(new iam.PolicyStatement({
       actions: ['ssm:PutParameter'],
       resources: [windowParamArn],
@@ -133,7 +136,10 @@ export class AoaVotingStack extends Stack {
     const userPoolClient = userPool.addClient('AoaUserPoolClient', {
       generateSecret: false,
       authFlows: { userSrp: true },
+      enableTokenRevocation: true,
     });
+    // Cast to any to force enable admin auth flow if type is missing or use direct override
+    (userPoolClient.node.defaultChild as any).explicitAuthFlows = ['ALLOW_USER_SRP_AUTH', 'ALLOW_ADMIN_USER_PASSWORD_AUTH', 'ALLOW_REFRESH_TOKEN_AUTH'];
 
     // API Gateway
     const api = new RestApi(this, 'AoaApi', { restApiName: 'AOA Voting API' });
@@ -169,7 +175,7 @@ export class AoaVotingStack extends Stack {
       }],
     });
     new CfnWebACLAssociation(this, 'AoaWafAssoc', {
-      resourceArn: `arn:aws:apigateway:\${this.region}::/restapis/\${api.restApiId}/stages/\${api.deploymentStage.stageName}`,
+      resourceArn: `arn:aws:apigateway:${this.region}::/restapis/${api.restApiId}/stages/${api.deploymentStage.stageName}`,
       webAclArn: waf.attrArn,
     });
 
@@ -182,9 +188,8 @@ export class AoaVotingStack extends Stack {
     const unauthorizedMutationMetric = trail.logGroup!.addMetricFilter('UnauthorizedMutationFilter', {
       metricName: 'UnauthorizedResultsMutation',
       metricNamespace: 'AoaVoting/Security',
+      filterPattern: FilterPattern.literal(`{ ($.eventName = "DeleteItem" || $.eventName = "UpdateItem") && ($.requestParameters.tableName = "${resultsTable.tableName}") && ($.userIdentity.arn != "${submitVoteLambda.role!.roleArn}") }`),
     });
-    (unauthorizedMutationMetric.node.defaultChild as any).filterPattern = 
-      `{ ($.eventName = "DeleteItem" || $.eventName = "UpdateItem") && ($.requestParameters.tableName = "\${resultsTable.tableName}") && ($.userIdentity.arn != "\${submitVoteLambda.role!.roleArn}") }`;
 
     new Alarm(this, 'UnauthorizedMutationAlarm', {
       metric: unauthorizedMutationMetric.metric(),
@@ -194,8 +199,16 @@ export class AoaVotingStack extends Stack {
       treatMissingData: TreatMissingData.NOT_BREACHING,
     }).addAlarmAction(new SnsAction(alertTopic));
 
+    const errorRate = new MathExpression({
+      expression: 'errors / invocations',
+      usingMetrics: {
+        errors: submitVoteLambda.metricErrors({ period: Duration.minutes(5), statistic: 'Sum' }),
+        invocations: submitVoteLambda.metricInvocations({ period: Duration.minutes(5), statistic: 'Sum' }),
+      },
+    });
+
     new Alarm(this, 'SubmitVoteErrorRateAlarm', {
-      metric: submitVoteLambda.metricErrors({ period: Duration.minutes(5), statistic: 'Sum' }).divide(submitVoteLambda.metricInvocations({ period: Duration.minutes(5), statistic: 'Sum' })),
+      metric: errorRate,
       threshold: 0.1,
       evaluationPeriods: 1,
       comparisonOperator: ComparisonOperator.GREATER_THAN_THRESHOLD,

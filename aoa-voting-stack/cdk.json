@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-inline bin/aoa-voting-stack.ts",
+  "app": "npx ts-node bin/[bin]aoa-voting-stack.ts",
   "watch": {
     "include": ["**"]
   },

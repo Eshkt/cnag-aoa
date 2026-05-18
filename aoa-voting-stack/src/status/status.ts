@@ -1,13 +1,13 @@
 import { APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
 import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { ScanCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { ScanCommand, DynamoDBDocumentClient, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
-const ssmClient = new SSMClient({});
+const ssmClient = new SSMClient({ region: process.env.AWS_REGION });
 const ddbClient = new DynamoDBClient({ region: process.env.AWS_REGION });
 const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
 
-const HAS_VOTED_TABLE = 'HasVotedTable';
+const HAS_VOTED_TABLE = 'HasVotedTable-804887692450';
 const VOTING_WINDOW_PARAM = '/voting/window-open';
 
 let cachedWindowOpen: boolean | null = null;
@@ -49,6 +49,6 @@ export const handler: APIGatewayProxyHandler = async (): Promise<APIGatewayProxy
 
   return {
     statusCode: 200,
-    body: JSON.stringify({ open: windowOpen, totalVotes }),
+    body: JSON.stringify({ open: cachedWindowOpen, totalVotes }),
   };
 };

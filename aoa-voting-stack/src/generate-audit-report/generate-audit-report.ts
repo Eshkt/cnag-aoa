@@ -11,10 +11,10 @@ const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
 const ssmClient = new SSMClient({ region: process.env.AWS_REGION });
 const s3Client = new S3Client({ region: process.env.AWS_REGION });
 
-const HAS_VOTED_TABLE = 'HasVotedTable';
-const RESULTS_TABLE = 'ResultsTable';
-const PARTICIPANT_BUCKET = 'participant-list-bucket';
-const AUDIT_BUCKET = 'audit-archive-bucket';
+const HAS_VOTED_TABLE = 'HasVotedTable-804887692450';
+const RESULTS_TABLE = 'ResultsTable-804887692450';
+const PARTICIPANT_BUCKET = 'participant-list-bucket-804887692450';
+const AUDIT_BUCKET = 'audit-archive-bucket-804887692450';
 const VOTING_WINDOW_PARAM = '/voting/window-open';
 
 export const handler: Handler = async () => {

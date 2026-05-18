@@ -6,15 +6,15 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { PutCommand, GetCommand, DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { randomUUID } from 'crypto';
 
-const ssmClient = new SSMClient({});
+const ssmClient = new SSMClient({ region: process.env.AWS_REGION });
 const secretsClient = new SecretsManagerClient({});
 const ddbClient = new DynamoDBClient({ region: process.env.AWS_REGION });
 const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
 
-const HAS_VOTED_TABLE = 'HasVotedTable';
-const RESULTS_TABLE = 'ResultsTable';
+const HAS_VOTED_TABLE = 'HasVotedTable-804887692450';
+const RESULTS_TABLE = 'ResultsTable-804887692450';
 const VOTING_WINDOW_PARAM = '/voting/window-open';
-const HMAC_SECRET_NAME = 'hmac-signing-key';
+const HMAC_SECRET_NAME = 'hmac-signing-key-804887692450';
 
 let cachedHmacSecret: string | null = null;
 
