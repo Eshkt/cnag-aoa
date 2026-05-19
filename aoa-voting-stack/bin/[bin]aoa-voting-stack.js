@@ -1,0 +1,13 @@
+#!/usr/bin/env node
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const aws_cdk_lib_1 = require("aws-cdk-lib");
+const aoa_voting_stack_1 = require("../lib/aoa-voting-stack");
+const app = new aws_cdk_lib_1.App();
+new aoa_voting_stack_1.AoaVotingStack(app, 'AoaVotingStack', {
+    env: {
+        account: process.env.CDK_DEFAULT_ACCOUNT,
+        region: process.env.CDK_DEFAULT_REGION,
+    },
+});
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiW2Jpbl1hb2Etdm90aW5nLXN0YWNrLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiW2Jpbl1hb2Etdm90aW5nLXN0YWNrLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7OztBQUNBLDZDQUFrQztBQUNsQyw4REFBeUQ7QUFFekQsTUFBTSxHQUFHLEdBQUcsSUFBSSxpQkFBRyxFQUFFLENBQUM7QUFDdEIsSUFBSSxpQ0FBYyxDQUFDLEdBQUcsRUFBRSxnQkFBZ0IsRUFBRTtJQUN4QyxHQUFHLEVBQUU7UUFDSCxPQUFPLEVBQUUsT0FBTyxDQUFDLEdBQUcsQ0FBQyxtQkFBbUI7UUFDeEMsTUFBTSxFQUFFLE9BQU8sQ0FBQyxHQUFHLENBQUMsa0JBQWtCO0tBQ3ZDO0NBQ0YsQ0FBQyxDQUFDIiwic291cmNlc0NvbnRlbnQiOlsiIyEvdXNyL2Jpbi9lbnYgbm9kZVxuaW1wb3J0IHsgQXBwIH0gZnJvbSAnYXdzLWNkay1saWInO1xuaW1wb3J0IHsgQW9hVm90aW5nU3RhY2sgfSBmcm9tICcuLi9saWIvYW9hLXZvdGluZy1zdGFjayc7XG5cbmNvbnN0IGFwcCA9IG5ldyBBcHAoKTtcbm5ldyBBb2FWb3RpbmdTdGFjayhhcHAsICdBb2FWb3RpbmdTdGFjaycsIHtcbiAgZW52OiB7XG4gICAgYWNjb3VudDogcHJvY2Vzcy5lbnYuQ0RLX0RFRkFVTFRfQUNDT1VOVCxcbiAgICByZWdpb246IHByb2Nlc3MuZW52LkNES19ERUZBVUxUX1JFR0lPTixcbiAgfSxcbn0pO1xuIl19

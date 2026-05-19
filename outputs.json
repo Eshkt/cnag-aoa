@@ -1,0 +1,10 @@
+{
+  "AoaVotingStack": {
+    "UserPoolClientId": "2pugevejmia46uot4a49mdk7fq",
+    "UserPoolId": "ap-southeast-1_UIuiQtBKN",
+    "ApiUrl": "https://4s5hw60fvk.execute-api.ap-southeast-1.amazonaws.com/prod/",
+    "ResultsTableName": "ResultsTable-804887692450",
+    "AoaApiEndpoint4CA0AE7F": "https://4s5hw60fvk.execute-api.ap-southeast-1.amazonaws.com/prod/",
+    "HasVotedTableName": "HasVotedTable-804887692450"
+  }
+}

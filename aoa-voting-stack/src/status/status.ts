@@ -7,8 +7,8 @@ const ssmClient = new SSMClient({ region: process.env.AWS_REGION });
 const ddbClient = new DynamoDBClient({ region: process.env.AWS_REGION });
 const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
 
-const HAS_VOTED_TABLE = 'HasVotedTable-804887692450';
-const VOTING_WINDOW_PARAM = '/voting/window-open';
+const HAS_VOTED_TABLE = process.env.HAS_VOTED_TABLE;
+const VOTING_WINDOW_PARAM = process.env.WINDOW_PARAM;
 
 let cachedWindowOpen: boolean | null = null;
 let lastCacheTime = 0;
@@ -49,6 +49,11 @@ export const handler: APIGatewayProxyHandler = async (): Promise<APIGatewayProxy
 
   return {
     statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+      'Access-Control-Allow-Methods': 'GET,OPTIONS'
+    },
     body: JSON.stringify({ open: cachedWindowOpen, totalVotes }),
   };
 };

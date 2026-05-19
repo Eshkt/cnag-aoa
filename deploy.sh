@@ -103,14 +103,20 @@ echo "S4: Compiling and Bundling Lambdas..."
 cd aoa-voting-stack
 npm install --silent
 mkdir -p dist
-for f in src/*/index.ts src/*/*.ts; do
-    # Only bundle files named like the directory or specifically index.ts/handler.ts
-    dir=$(dirname "$f")
+# Use find to avoid literal glob issues and target only relevant subdirectories
+for dir in src/*/ ; do
     base=$(basename "$dir")
-    file=$(basename "$f")
-    if [[ "$file" == "index.ts" ]] || [[ "$file" == "$base.ts" ]]; then
-        echo "Bundling $f..."
-        npx esbuild "$f" --bundle --platform=node --target=node20 --outfile="dist/$base/index.js"
+    # Skip React directories
+    if [[ "$base" == "Dashboard" ]] || [[ "$base" == "VotingPage" ]]; then continue; fi
+    
+    # Look for entry point: either index.ts or same name as directory
+    entry=""
+    if [ -f "${dir}index.ts" ]; then entry="${dir}index.ts";
+    elif [ -f "${dir}${base}.ts" ]; then entry="${dir}${base}.ts"; fi
+    
+    if [ -n "$entry" ]; then
+        echo "Bundling $entry..."
+        npx esbuild "$entry" --bundle --platform=node --target=node20 --external:@aws-sdk/* --outfile="dist/$base/index.js"
     fi
 done
 cd ..
@@ -124,7 +130,7 @@ if [ ! -f terraform.tfvars ]; then
 fi
 terraform apply -auto-approve
 # Extract outputs to root .env.dev
-terraform output -json | jq -r 'to_entries | .[] | "\(.key | upcase)=\(.value.value)"' > ../$ENV_FILE
+terraform output -json | jq -r 'to_entries | .[] | "\(.key | ascii_upcase)=\(.value.value)"' > ../$ENV_FILE
 cd ..
 log_pass "S5"
 
