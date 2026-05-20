@@ -1,0 +1,1307 @@
+{
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0": [
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    },
+    {
+      "type": "aws:cdk:stack-tags",
+      "data": [
+        {
+          "key": "amplify:deployment-type",
+          "value": "sandbox"
+        },
+        {
+          "key": "created-by",
+          "value": "amplify"
+        }
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/deploymentType": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "deploymentType"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/region": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "region"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth": [
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/userPoolId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "userPoolId"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/webClientId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "webClientId"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/identityPoolId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "identityPoolId"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/authRegion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "authRegion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/allowUnauthenticatedIdentities": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "allowUnauthenticatedIdentities"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/signupAttributes": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "signupAttributes"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/usernameAttributes": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "usernameAttributes"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/verificationMechanisms": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "verificationMechanisms"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/passwordPolicyMinLength": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "passwordPolicyMinLength"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/passwordPolicyRequirements": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "passwordPolicyRequirements"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/mfaConfiguration": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "mfaConfiguration"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/mfaTypes": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "mfaTypes"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/passwordlessOptions": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "passwordlessOptions"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/socialProviders": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "socialProviders"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/oauthCognitoDomain": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "oauthCognitoDomain"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/oauthScope": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "oauthScope"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/oauthRedirectSignIn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "oauthRedirectSignIn"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/oauthRedirectSignOut": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "oauthRedirectSignOut"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/oauthResponseType": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "oauthResponseType"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/oauthClientId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "oauthClientId"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/groups": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "groups"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage": [
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/function": [
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/definedFunctions": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "definedFunctions"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/backend-function, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storageRegion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "storageRegion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/backend-storage, aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/bucketName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "bucketName"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/backend-storage, aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/buckets": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "buckets"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/backend-output-storage...",
+        "Array.forEach (:)",
+        "...@aws-amplify/backend-output-storage, @aws-amplify/backend-storage, aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/BootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BootstrapVersion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/CheckBootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CheckBootstrapVersion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth/amplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthUserPool34517B47Ref": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthUserPool34517B47Ref"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth/amplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthUserPoolAppClient00BDAB6FRef": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthUserPoolAppClient00BDAB6FRef"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth/amplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthIdentityPoolD55E59E5Ref": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthIdentityPoolD55E59E5Ref"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth/amplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthauthenticatedUserRole6D0C5924Ref": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthauthenticatedUserRole6D0C5924Ref"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth/amplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthunauthenticatedUserRole76E46849Ref": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthunauthenticatedUserRole76E46849Ref"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth/amplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthcomelecadminGroupRole0B1848EARef": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthcomelecadminGroupRole0B1848EARef"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth.NestedStack/auth.NestedStackResource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "auth179371D7"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage/Custom::S3AutoDeleteObjectsCustomResourceProvider": [
+    {
+      "type": "aws:cdk:is-custom-resource-handler-customResourceProvider",
+      "data": true
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage/reference-to-amplifycnagaoa10021895sandbox19165bb7d0authNestedStackauthNestedStackResource30BF10A2Outputs.amplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthauthenticatedUserRole6D0C5924Ref": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "referencetoamplifycnagaoa10021895sandbox19165bb7d0authNestedStackauthNestedStackResource30BF10A2Outputsamplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthauthenticatedUserRole6D0C5924Ref"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage/reference-to-amplifycnagaoa10021895sandbox19165bb7d0authNestedStackauthNestedStackResource30BF10A2Outputs.amplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthunauthenticatedUserRole76E46849Ref": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "referencetoamplifycnagaoa10021895sandbox19165bb7d0authNestedStackauthNestedStackResource30BF10A2Outputsamplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthunauthenticatedUserRole76E46849Ref"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage/reference-to-amplifycnagaoa10021895sandbox19165bb7d0authNestedStackauthNestedStackResource30BF10A2Outputs.amplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthcomelecadminGroupRole0B1848EARef": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "referencetoamplifycnagaoa10021895sandbox19165bb7d0authNestedStackauthNestedStackResource30BF10A2Outputsamplifycnagaoa10021895sandbox19165bb7d0authamplifyAuthcomelecadminGroupRole0B1848EARef"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage/amplifycnagaoa10021895sandbox19165bb7d0storageaoaVotingStorageBucketA4F88421Ref": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifycnagaoa10021895sandbox19165bb7d0storageaoaVotingStorageBucketA4F88421Ref"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage.NestedStack/storage.NestedStackResource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "storage0EC3F24A"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/function/reference-to-amplifycnagaoa10021895sandbox19165bb7d0HasVotedTable03F9FFD6Arn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "referencetoamplifycnagaoa10021895sandbox19165bb7d0HasVotedTable03F9FFD6Arn"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/function/reference-to-amplifycnagaoa10021895sandbox19165bb7d0ResultsTableB5C40836Arn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "referencetoamplifycnagaoa10021895sandbox19165bb7d0ResultsTableB5C40836Arn"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/function/reference-to-amplifycnagaoa10021895sandbox19165bb7d0VotingWindowParam5233035ERef": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "referencetoamplifycnagaoa10021895sandbox19165bb7d0VotingWindowParam5233035ERef"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/function/reference-to-amplifycnagaoa10021895sandbox19165bb7d0HasVotedTable03F9FFD6Ref": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "referencetoamplifycnagaoa10021895sandbox19165bb7d0HasVotedTable03F9FFD6Ref"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/function/reference-to-amplifycnagaoa10021895sandbox19165bb7d0ResultsTableB5C40836Ref": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "referencetoamplifycnagaoa10021895sandbox19165bb7d0ResultsTableB5C40836Ref"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/function/amplifycnagaoa10021895sandbox19165bb7d0functionapiServerlambda7D79FF23Ref": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifycnagaoa10021895sandbox19165bb7d0functionapiServerlambda7D79FF23Ref"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/function.NestedStack/function.NestedStackResource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "function1351588B"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/HasVotedTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "HasVotedTable0629E8C4"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Table2 in aws-cdk-lib...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:19: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:19:2)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/ResultsTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ResultsTableF0B5BF22"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Table2 in aws-cdk-lib...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:25: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:25:2)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/VotingWindowParam/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VotingWindowParamCE20D204"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new StringParameter2 in aws-cdk-lib...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:33: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:33:2)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/CDKMetadata/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadata"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/CDKMetadata/Condition": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadataAvailable"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth/amplifyAuth/IdentityPool": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifyAuthIdentityPool3FDE84CC"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...@aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth/amplifyAuth/IdentityPoolRoleAttachment": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifyAuthIdentityPoolRoleAttachment045F17C8"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...@aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth/amplifyAuth/comelec-adminGroup": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifyAuthcomelecadminGroupEA91B4F4"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...<anonymous> in @aws-amplify/auth-construct...",
+        "Array.forEach (:)",
+        "...@aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth/CDKMetadata/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadata"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth/CDKMetadata/Condition": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadataAvailable"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage/Custom::S3AutoDeleteObjectsCustomResourceProvider/Role": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend-storage, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage/Custom::S3AutoDeleteObjectsCustomResourceProvider/Handler": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend-storage, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage/AOA_VOTING_STORAGE_BUCKET_NAMEParameter/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AOAVOTINGSTORAGEBUCKETNAMEParameter0312D364"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, <anonymous> in @aws-amplify/backend...",
+        "Array.map (:)",
+        "...<anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage/amplify-cnagaoa-10021895-sandbox-19165bb7d0--storageAccess3/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifycnagaoa10021895sandbox19165bb7d0storageAccess3E1265375"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, <anonymous> in @aws-amplify/backend-storage...",
+        "Map.forEach (:)",
+        "...@aws-amplify/backend-storage, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage/amplify-cnagaoa-10021895-sandbox-19165bb7d0--storageAccess4/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifycnagaoa10021895sandbox19165bb7d0storageAccess4E2486710"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, <anonymous> in @aws-amplify/backend-storage...",
+        "Map.forEach (:)",
+        "...@aws-amplify/backend-storage, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage/amplify-cnagaoa-10021895-sandbox-19165bb7d0--storageAccess5/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifycnagaoa10021895sandbox19165bb7d0storageAccess5FCC4D385"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, <anonymous> in @aws-amplify/backend-storage...",
+        "Map.forEach (:)",
+        "...@aws-amplify/backend-storage, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage/CDKMetadata/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadata"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage/CDKMetadata/Condition": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadataAvailable"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/function/apiServer-lambda/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "apiServerlambda3E63B9B4"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend-function, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/function/CDKMetadata/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadata"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/function/CDKMetadata/Condition": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadataAvailable"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend, node internals, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli...",
+        "(no user code in 9007199254740991 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth/amplifyAuth/UserPool/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifyAuthUserPool4BA7F805"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth/amplifyAuth/UserPoolAppClient/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifyAuthUserPoolAppClient2626C6F8"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth/amplifyAuth/authenticatedUserRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifyAuthauthenticatedUserRoleD8DA3689"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth/amplifyAuth/unauthenticatedUserRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifyAuthunauthenticatedUserRole2B524D9E"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/auth/amplifyAuth/comelec-adminGroupRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "amplifyAuthcomelecadminGroupRole0EAA418D"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, <anonymous> in @aws-amplify/auth-construct...",
+        "Array.forEach (:)",
+        "...@aws-amplify/auth-construct, @aws-amplify/backend-auth, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage/aoaVotingStorage/Bucket/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "aoaVotingStorageBucketF1D07235"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend-storage, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    },
+    {
+      "type": "aws:cdk:analytics:mixin",
+      "data": {
+        "mixin": "aws-cdk-lib.aws_s3.mixins.BucketAutoDeleteObjects"
+      }
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/function/apiServer-lambda/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "apiServerlambdaServiceRoleDEA682D5"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend-function, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage/aoaVotingStorage/Bucket/Policy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "aoaVotingStorageBucketPolicyC826A9C7"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend-storage, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    },
+    {
+      "type": "aws:cdk:analytics:mixin",
+      "data": {
+        "mixin": "aws-cdk-lib.aws_s3.mixins.BucketPolicyStatements"
+      }
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/storage/aoaVotingStorage/Bucket/AutoDeleteObjectsCustomResource/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "aoaVotingStorageBucketAutoDeleteObjectsCustomResourceED8CACE6"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, @aws-amplify/backend-storage, <anonymous> in @aws-amplify/backend...",
+        "Array.forEach (:)",
+        "...defineBackend in @aws-amplify/backend...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:12:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ],
+  "/amplify-cnagaoa-10021895-sandbox-19165bb7d0/function/apiServer-lambda/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "apiServerlambdaServiceRoleDefaultPolicyD3E6484C"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.grantReadWriteData in aws-cdk-lib...",
+        "/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:41: (/Users/a10021895/Git-Repo/cnag-aoa/amplify/backend.ts:41:1)",
+        "...node internals, tsx, @aws-amplify/backend-deployer, @aws-cdk/toolkit-lib, @aws-amplify/backend-deployer, @aws-amplify/sandbox, @aws-amplify/backend-cli..."
+      ]
+    }
+  ]
+}
