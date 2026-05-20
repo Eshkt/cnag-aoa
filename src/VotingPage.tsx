@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Amplify, Auth } from 'aws-amplify';
+import { Amplify } from 'aws-amplify'
+import { fetchAuthSession } from 'aws-amplify/auth';
 import outputs from '../amplify_outputs.json';
 
 Amplify.configure(outputs);
@@ -26,8 +27,8 @@ export default function VotingPage() {
   useEffect(() => {
     (async () => {
       try {
-        const session: CognitoSession = await Auth.currentSession();
-        setEmail(session.idToken.payload.email);
+        const session: CognitoSession = await fetchAuthSession();
+        setEmail(session.tokens.idToken.payload.email);
       } catch {
         window.location.href = '/'; // Redirect to login
       }
@@ -42,8 +43,8 @@ export default function VotingPage() {
     setErrorType('none');
 
     try {
-      const session: CognitoSession = await Auth.currentSession();
-      const token = session.idToken.jwtToken;
+      const session: CognitoSession = await fetchAuthSession();
+      const token = session.tokens.idToken.toString();
 
       const response = await fetch(`${API_URL}/vote`, {
         method: 'POST',
