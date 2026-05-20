@@ -5,6 +5,8 @@ import { apiFunction } from './functions/api/resource.ts';
 import * as cdk from 'aws-cdk-lib';
 import * as ddb from 'aws-cdk-lib/aws-dynamodb';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
+import * as apigw from 'aws-cdk-lib/aws-apigateway';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 
 /**
  * @see https://docs.amplify.aws/gen2/build-a-backend/
@@ -38,11 +40,38 @@ const windowParam = new ssm.StringParameter(backend.stack, 'VotingWindowParam', 
 // Grant permissions to the API Lambda function
 const lambdaRole = backend.apiFunction.resources.lambda.role;
 
-hasVotedTable.grantReadWriteData(lambdaRole);
-resultsTable.grantReadWriteData(lambdaRole);
-windowParam.grantRead(lambdaRole);
+if (lambdaRole) {
+  hasVotedTable.grantReadWriteData(lambdaRole);
+  resultsTable.grantReadWriteData(lambdaRole);
+  windowParam.grantRead(lambdaRole);
+}
 
 // Add environment variables to Lambda
 backend.apiFunction.addEnvironment('HAS_VOTED_TABLE', hasVotedTable.tableName);
 backend.apiFunction.addEnvironment('RESULTS_TABLE', resultsTable.tableName);
 backend.apiFunction.addEnvironment('WINDOW_PARAM', windowParam.parameterName);
+
+// Create API Gateway REST API
+const userPool = backend.auth.resources.userPool;
+const api = new apigw.LambdaRestApi(backend.stack, 'VotingApi', {
+  handler: backend.apiFunction.resources.lambda,
+  proxy: true,
+  defaultCorsPreflightOptions: {
+    allowOrigins: apigw.Cors.ALL_ORIGINS,
+    allowMethods: apigw.Cors.ALL_METHODS,
+    allowHeaders: ['Content-Type', 'Authorization'],
+  },
+  defaultMethodOptions: {
+    authorizationType: apigw.AuthorizationType.COGNITO,
+    authorizer: new apigw.CognitoUserPoolsAuthorizer(backend.stack, 'VotingAuthorizer', {
+      cognitoUserPools: [userPool],
+    }),
+  },
+});
+
+// Expose API URL as custom output so frontend can read it
+backend.addOutput({
+  custom: {
+    apiEndpoint: api.url,
+  },
+});
