@@ -1,9 +1,9 @@
 {
   "auth": {
-    "user_pool_id": "us-east-1_IAC1O6Pgn",
-    "aws_region": "us-east-1",
-    "user_pool_client_id": "s97364jkokev1iqf262lpke1a",
-    "identity_pool_id": "us-east-1:35709d50-64ff-442b-8ec0-08969ade64dc",
+    "user_pool_id": "ap-southeast-1_86dD9EBqw",
+    "aws_region": "ap-southeast-1",
+    "user_pool_client_id": "7um3nrtejbh9bihi9p96dqlc98",
+    "identity_pool_id": "ap-southeast-1:1f0904c1-a204-42d5-9be3-1580a044356c",
     "mfa_methods": [],
     "standard_required_attributes": [
       "email"
@@ -32,13 +32,13 @@
     "unauthenticated_identities_enabled": true
   },
   "storage": {
-    "aws_region": "us-east-1",
-    "bucket_name": "amplify-cnagaoa-10021895--aoavotingstoragebucketf1-t8jqwejnr4bs",
+    "aws_region": "ap-southeast-1",
+    "bucket_name": "amplify-cnagaoa-10021895--aoavotingstoragebucketf1-gho37pcpuhdh",
     "buckets": [
       {
         "name": "aoaVotingStorage",
-        "bucket_name": "amplify-cnagaoa-10021895--aoavotingstoragebucketf1-t8jqwejnr4bs",
-        "aws_region": "us-east-1",
+        "bucket_name": "amplify-cnagaoa-10021895--aoavotingstoragebucketf1-gho37pcpuhdh",
+        "aws_region": "ap-southeast-1",
         "paths": {
           "participants/*": {
             "authenticated": [
