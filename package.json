@@ -2,10 +2,14 @@
   "name": "cnag-aoa",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "build": "echo 'Building frontend...'",
+    "build": "mkdir -p build && echo 'Placeholder for real React build output' > build/index.html",
     "amplify:sandbox": "npx ampx sandbox",
     "amplify:deploy": "npx ampx pipeline-deploy"
+  },
+  "overrides": {
+    "zod": "3.25.17"
   },
   "devDependencies": {
     "@aws-amplify/backend": "^1.0.0",
@@ -13,7 +17,8 @@
     "aws-cdk": "^2.0.0",
     "aws-cdk-lib": "^2.0.0",
     "constructs": "^10.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "jsonschema": "1.4.1"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.0.0",
