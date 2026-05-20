@@ -1,0 +1,9 @@
+.env.local
+.env.dev
+terraform.tfstate
+*.tfstate.backup
+.aws/
+dist/
+node_modules/
+.terraform/
+terraform/zips/

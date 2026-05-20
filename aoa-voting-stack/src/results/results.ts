@@ -5,7 +5,13 @@ import { ScanCommand, QueryCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-
 const ddbClient = new DynamoDBClient({ region: process.env.AWS_REGION });
 const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
 
-const RESULTS_TABLE = 'ResultsTable';
+const RESULTS_TABLE = process.env.RESULTS_TABLE!;
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+  'Access-Control-Allow-Methods': 'GET,OPTIONS'
+};
 
 export const handler: APIGatewayProxyHandler = async (event): Promise<APIGatewayProxyResult> => {
   // Defense-in-depth: check for comelec-admin group
@@ -13,6 +19,7 @@ export const handler: APIGatewayProxyHandler = async (event): Promise<APIGateway
   if (!groups.includes('comelec-admin')) {
     return {
       statusCode: 403,
+      headers: corsHeaders,
       body: JSON.stringify({ error: 'access denied' }),
     };
   }
@@ -36,6 +43,7 @@ export const handler: APIGatewayProxyHandler = async (event): Promise<APIGateway
 
     return {
       statusCode: 200,
+      headers: corsHeaders,
       body: JSON.stringify({
         yesCount,
         noCount,
@@ -46,6 +54,7 @@ export const handler: APIGatewayProxyHandler = async (event): Promise<APIGateway
     console.error('Failed to get results:', err);
     return {
       statusCode: 500,
+      headers: corsHeaders,
       body: JSON.stringify({ error: 'Failed to retrieve results' }),
     };
   }

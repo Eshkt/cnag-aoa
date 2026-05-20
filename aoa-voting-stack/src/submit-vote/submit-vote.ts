@@ -11,12 +11,18 @@ const secretsClient = new SecretsManagerClient({});
 const ddbClient = new DynamoDBClient({ region: process.env.AWS_REGION });
 const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
 
-const HAS_VOTED_TABLE = 'HasVotedTable-804887692450';
-const RESULTS_TABLE = 'ResultsTable-804887692450';
-const VOTING_WINDOW_PARAM = '/voting/window-open';
-const HMAC_SECRET_NAME = 'hmac-signing-key-804887692450';
+const HAS_VOTED_TABLE = process.env.HAS_VOTED_TABLE!;
+const RESULTS_TABLE = process.env.RESULTS_TABLE!;
+const VOTING_WINDOW_PARAM = process.env.WINDOW_PARAM!;
+const HMAC_SECRET_NAME = process.env.HMAC_SECRET_NAME!;
 
 let cachedHmacSecret: string | null = null;
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+  'Access-Control-Allow-Methods': 'POST,OPTIONS'
+};
 
 export const handler: APIGatewayProxyHandler = async (event): Promise<APIGatewayProxyResult> => {
   // 1. Extract request body and JWT
@@ -141,6 +147,7 @@ export const handler: APIGatewayProxyHandler = async (event): Promise<APIGateway
   // 7. Return success
   return {
     statusCode: 200,
+    headers: corsHeaders,
     body: JSON.stringify({ message: 'vote recorded' }),
   };
 };

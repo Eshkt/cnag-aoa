@@ -1,0 +1,13 @@
+aws_profile          = "aoa-dev"
+region               = "ap-southeast-1"
+environment          = "dev"
+stack_name           = "aoa-voting"
+cognito_pool         = "aoa-voting"
+api_name             = "aoa-voting-api"
+voter_emails         = ["franky.parcon.cics@ust.edu.ph", "cnag.cics@ust.edu.ph", "jhanellamarie.corpuz.cics@ust.edu.ph"]
+hmac_secret_val      = "dev-test-secret-not-for-prod"
+window_default       = "false"
+budget_limit         = "10"
+alert_email          = "franky.parcon.cics@ust.edu.ph"
+account_id           = "804887692450"
+comelec_phone_number = "+639000000000"
