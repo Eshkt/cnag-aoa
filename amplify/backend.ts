@@ -54,15 +54,12 @@ backend.apiFunction.addEnvironment('AMPLIFY_AUTH_USERPOOL_ID', 'ap-southeast-1_8
 
 
 // Create API Gateway REST API
+// We REMOVE defaultCorsPreflightOptions here to stop API Gateway from adding duplicate CORS headers.
+// The Lambda handler now handles CORS exclusively.
 const userPool = backend.auth.resources.userPool;
 const api = new apigw.LambdaRestApi(backend.stack, 'VotingApi', {
   handler: backend.apiFunction.resources.lambda,
   proxy: true,
-  defaultCorsPreflightOptions: {
-    allowOrigins: apigw.Cors.ALL_ORIGINS,
-    allowMethods: apigw.Cors.ALL_METHODS,
-    allowHeaders: ['Content-Type', 'Authorization'],
-  },
   defaultMethodOptions: {
     authorizationType: apigw.AuthorizationType.COGNITO,
     authorizer: new apigw.CognitoUserPoolsAuthorizer(backend.stack, 'VotingAuthorizer', {
