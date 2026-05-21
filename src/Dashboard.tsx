@@ -88,7 +88,7 @@ export default function Dashboard() {
 
       const res = await fetch(`${API_URL}/results`, {
         headers: {
-          'Authorization': token,
+          'Authorization': `Bearer ${token}`,
         },
       });
 
@@ -111,7 +111,7 @@ export default function Dashboard() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': token,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ open: newValue }),
       });
