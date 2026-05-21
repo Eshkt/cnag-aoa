@@ -50,6 +50,8 @@ if (lambdaRole) {
 backend.apiFunction.addEnvironment('HAS_VOTED_TABLE', hasVotedTable.tableName);
 backend.apiFunction.addEnvironment('RESULTS_TABLE', resultsTable.tableName);
 backend.apiFunction.addEnvironment('WINDOW_PARAM', windowParam.parameterName);
+backend.apiFunction.addEnvironment('AMPLIFY_AUTH_USERPOOL_ID', backend.auth.resources.userPool.userPoolId);
+
 
 // Create API Gateway REST API
 const userPool = backend.auth.resources.userPool;
