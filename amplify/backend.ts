@@ -44,20 +44,26 @@ if (lambdaRole) {
   resultsTable.grantReadWriteData(lambdaRole);
   windowParam.grantRead(lambdaRole);
   windowParam.grantWrite(lambdaRole);
+  
+  // Grant read access to the HMAC secret for session signing
+  // Path pattern from previous turns: /amplify/d23np9c7e29dad/main/HMAC_SECRET
+  // We'll grant broad access to the app's amplify path for flexibility
+  const secretPolicy = new cdk.aws_iam.PolicyStatement({
+    actions: ['ssm:GetParameter'],
+    resources: [`arn:aws:ssm:${cdk.Stack.of(backend.stack).region}:${cdk.Stack.of(backend.stack).account}:parameter/amplify/d23np9c7e29dad/main/*`],
+  });
+  lambdaRole.addToPrincipalPolicy(secretPolicy);
 }
 
 // Add environment variables to Lambda
 backend.apiFunction.addEnvironment('HAS_VOTED_TABLE', hasVotedTable.tableName);
 backend.apiFunction.addEnvironment('RESULTS_TABLE', resultsTable.tableName);
 backend.apiFunction.addEnvironment('WINDOW_PARAM', windowParam.parameterName);
-backend.apiFunction.addEnvironment('AMPLIFY_AUTH_USERPOOL_ID', 'ap-southeast-1_hPRpHELAP');
+backend.apiFunction.addEnvironment('HMAC_SECRET_PATH', '/amplify/d23np9c7e29dad/main/HMAC_SECRET');
 
 
 // Create API Gateway REST API
-const userPool = backend.auth.resources.userPool;
-
-// Use RestApi for total control. 
-// We DO NOT set defaultCorsPreflightOptions here.
+// Use RestApi for total control. No default Cognito Auth.
 const api = new apigw.RestApi(backend.stack, 'VotingApi', {
   restApiName: 'VotingApi',
   deployOptions: {
@@ -65,23 +71,15 @@ const api = new apigw.RestApi(backend.stack, 'VotingApi', {
   },
 });
 
-const authorizer = new apigw.CognitoUserPoolsAuthorizer(backend.stack, 'VotingAuthorizer', {
-  cognitoUserPools: [userPool],
-});
-
 const lambdaIntegration = new apigw.LambdaIntegration(backend.apiFunction.resources.lambda);
 
 const addRoutes = (resource: apigw.IResource) => {
-  // ANY method with Authorizer. 
-  // API Gateway should NOT add CORS headers here.
+  // All methods are public at the Gateway level. 
+  // Session validation happens inside the Lambda.
   resource.addMethod('ANY', lambdaIntegration, {
-    authorizationType: apigw.AuthorizationType.COGNITO,
-    authorizer: authorizer,
+    authorizationType: apigw.AuthorizationType.NONE,
   });
 
-  // OPTIONS method with NONE authorizer for preflight.
-  // We route this to Lambda so handler.ts can return the restricted origin.
-  // NO responseParameters or integrationResponses here to avoid duplicates.
   resource.addMethod('OPTIONS', lambdaIntegration, {
     authorizationType: apigw.AuthorizationType.NONE,
   });

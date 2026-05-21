@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { fetchAuthSession } from 'aws-amplify/auth';
 // @ts-ignore
 import outputs from '../amplify_outputs.json';
 
@@ -18,7 +17,7 @@ interface ResultCandidate {
 
 type Results = Record<string, ResultCandidate[]>;
 
-export default function AdminPage() {
+export default function AdminPage({ token }: { token: string | null }) {
   const [turnout, setTurnout] = useState<Turnout | null>(null);
   const [results, setResults] = useState<Results>({});
   const [loading, setLoading] = useState(true);
@@ -31,9 +30,8 @@ export default function AdminPage() {
   }, []);
 
   async function fetchData() {
+    if (!token) return;
     try {
-      const session = await fetchAuthSession();
-      const token = session.tokens?.idToken?.toString();
       const headers = { 'Authorization': `Bearer ${token}` };
 
       const [turnoutRes, resultsRes] = await Promise.all([
@@ -51,12 +49,9 @@ export default function AdminPage() {
   }
 
   async function toggleWindow() {
-    if (!turnout) return;
+    if (!turnout || !token) return;
     setUpdatingWindow(true);
     try {
-      const session = await fetchAuthSession();
-      const token = session.tokens?.idToken?.toString();
-      
       const res = await fetch(`${API_URL}/admin/voting-window`, {
         method: 'PUT',
         headers: {
@@ -77,16 +72,15 @@ export default function AdminPage() {
   }
 
   async function exportCSV() {
+    if (!token) return;
     try {
-      const session = await fetchAuthSession();
-      const token = session.tokens?.idToken?.toString();
       const res = await fetch(`${API_URL}/admin/voters`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const voters = await res.json();
 
-      const headers = ['Student Number', 'Timestamp', 'Vote Hash'];
-      const rows = voters.map((v: any) => [v.voterId, v.timestamp, v.voteHash]);
+      const headers = ['Student Number', 'Name', 'Email', 'Timestamp', 'Vote Hash'];
+      const rows = voters.map((v: any) => [v.voterId, v.name, v.email, v.timestamp, v.voteHash]);
       
       const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -166,24 +160,20 @@ export default function AdminPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(450px, 1fr))', gap: '2rem' }}>
           {Object.entries(results).map(([position, candidates]) => {
             const total = candidates.reduce((sum, c) => sum + c.votes, 0);
-            const winner = candidates.reduce((prev, current) => (prev.votes > current.votes) ? prev : current);
-
+            
             return (
               <div key={position} style={{ background: '#111118', padding: '1.5rem', borderRadius: '12px', border: '1px solid #222' }}>
                 <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', color: '#aaa' }}>{position}</h3>
                 {candidates.map(c => {
                   const percent = total > 0 ? (c.votes / total) * 100 : 0;
-                  const isLeading = total > 0 && c === winner;
                   return (
                     <div key={c.name} style={{ marginBottom: '1.25rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
-                        <span style={{ color: isLeading ? '#f5c400' : 'white', fontWeight: isLeading ? 'bold' : 'normal' }}>
-                          {c.name} {isLeading && '👑'}
-                        </span>
+                        <span>{c.name === 'yes' ? 'YES' : c.name === 'no' ? 'NO' : c.name}</span>
                         <span>{c.votes} votes ({percent.toFixed(1)}%)</span>
                       </div>
                       <div style={{ width: '100%', height: '8px', background: '#0a0a0a', borderRadius: '4px' }}>
-                        <div style={{ width: `${percent}%`, height: '100%', background: isLeading ? '#f5c400' : '#444', borderRadius: '4px' }} />
+                        <div style={{ width: `${percent}%`, height: '100%', background: c.name === 'yes' ? '#00e868' : '#e8001c', borderRadius: '4px' }} />
                       </div>
                     </div>
                   );

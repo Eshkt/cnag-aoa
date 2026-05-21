@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { fetchAuthSession, fetchUserAttributes } from 'aws-amplify/auth';
 // @ts-ignore
 import outputs from '../amplify_outputs.json';
 
@@ -18,7 +17,7 @@ interface PositionGroup {
   candidates: Candidate[];
 }
 
-export default function VotingPage({ user: propUser }: { user: any }) {
+export default function VotingPage({ token }: { token: string | null }) {
   const [groups, setGroups] = useState<PositionGroup[]>([]);
   const [selections, setSelections] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<{ isOpen: boolean, hasVoted: boolean, name: string, studentNumber: string } | null>(null);
@@ -32,31 +31,23 @@ export default function VotingPage({ user: propUser }: { user: any }) {
   }, []);
 
   async function fetchInitialData() {
+    if (!token) return;
     try {
-      const session = await fetchAuthSession();
-      const token = session.tokens?.idToken?.toString();
-      
-      // FRESH attributes to avoid stale session data
-      const attrs = await fetchUserAttributes();
+      const headers = { 'Authorization': `Bearer ${token}` };
 
       const [statusRes, candidatesRes] = await Promise.all([
-        fetch(`${API_URL}/vote-status`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }),
-        fetch(`${API_URL}/candidates`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        fetch(`${API_URL}/vote-status`, { headers }),
+        fetch(`${API_URL}/candidates`, { headers })
       ]);
 
       const statusData = await statusRes.json();
       const candidatesData = await candidatesRes.json();
 
-      // Override name/studentNumber from status with fresh attrs if needed
-      setStatus({
-        ...statusData,
-        name: attrs.name || statusData.name,
-        studentNumber: attrs['custom:studentNumber'] as string || statusData.studentNumber
-      });
+      if (!statusRes.ok || !candidatesRes.ok) {
+         throw new Error(statusData.error || candidatesData.error || 'Failed to load data');
+      }
+
+      setStatus(statusData);
       setGroups(candidatesData);
     } catch (err) {
       console.error('Fetch error:', err);
@@ -75,11 +66,9 @@ export default function VotingPage({ user: propUser }: { user: any }) {
   const isComplete = groups.every(g => selections[g.id || g.position]);
 
   async function handleSubmit() {
+    if (!token) return;
     setLoadingSubmit(true);
     try {
-      const session = await fetchAuthSession();
-      const token = session.tokens?.idToken?.toString();
-
       const res = await fetch(`${API_URL}/submit-vote`, {
         method: 'POST',
         headers: {

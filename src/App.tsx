@@ -1,59 +1,31 @@
-import { Amplify } from 'aws-amplify'
-import { signUp, signIn, signOut, getCurrentUser, fetchAuthSession, fetchUserAttributes } from 'aws-amplify/auth'
+import { useState, useEffect } from 'react'
 // @ts-ignore
 import outputs from '../amplify_outputs.json'
-import { useState, useEffect } from 'react'
 import VotingPage from './VotingPage'
 import AdminPage from './AdminPage'
 
-Amplify.configure(outputs)
+const API_URL = outputs.custom.apiEndpoint.replace(/\/$/, '');
 
 type Screen = 'signup' | 'vote' | 'admin' | 'loading'
 
-function makePassword(email: string): string {
-  let hash = 0
-  for (let i = 0; i < email.length; i++) {
-    hash = ((hash << 5) - hash) + email.charCodeAt(i)
-    hash |= 0
-  }
-  const abs = Math.abs(hash).toString(16).padStart(8, '0')
-  return `Aoa2026!${abs}`
-}
-
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('loading')
+  const [screen, setScreen] = useState<Screen>('signup')
   const [fullName, setFullName] = useState('')
   const [studentNumber, setStudentNumber] = useState('')
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [token, setToken] = useState<string | null>(null)
   const [user, setUser] = useState<any>(null)
-  const [isAdmin, setIsAdmin] = useState(false)
 
+  // Session check on load (though in-memory means it clears on refresh as requested)
   useEffect(() => {
-    checkUser()
+    setScreen('signup')
   }, [])
-
-  async function checkUser() {
-    try {
-      const u = await getCurrentUser()
-      const attrs = await fetchUserAttributes() // Fresh attributes
-      setUser({ ...u, ...attrs })
-      
-      const session = await fetchAuthSession()
-      const groups = (session.tokens?.idToken?.payload['cognito:groups'] as string[]) || []
-      const admin = groups.includes('comelec-admin')
-      setIsAdmin(admin)
-
-      setScreen(admin ? 'admin' : 'vote')
-    } catch {
-      setScreen('signup')
-    }
-  }
 
   async function handleEnter() {
     setError('')
-    if (!email.endsWith('@ust.edu.ph')) {
+    if (!email.toLowerCase().endsWith('@ust.edu.ph')) {
       setError('Only @ust.edu.ph emails are allowed.')
       return
     }
@@ -63,57 +35,39 @@ export default function App() {
     }
 
     setLoading(true)
-    const password = makePassword(email)
-
     try {
-      // PROBLEM 1: Force clear old session first
-      try {
-        await signOut({ global: true });
-      } catch (e) {
-        // Ignore
+      const res = await fetch(`${API_URL}/begin-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: fullName, studentNumber, email })
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to enter system')
       }
 
-      // PROBLEM 2: Try sign in first
-      try {
-        await signIn({ username: email, password })
-      } catch (signInErr: any) {
-        if (signInErr.name === 'UserNotFoundException') {
-          await signUp({
-            username: email,
-            password,
-            options: {
-              userAttributes: {
-                email,
-                name: fullName,
-                'custom:studentNumber': studentNumber,
-              }
-            }
-          })
-          await signIn({ username: email, password })
-        } else {
-          throw signInErr
-        }
-      }
-
-      // Fetch fresh data immediately after success
-      await checkUser()
+      setToken(data.token)
+      // Decode token for UI use (simple base64)
+      const payload = JSON.parse(atob(data.token.split('.')[0]))
+      setUser(payload)
+      setScreen(payload.isAdmin ? 'admin' : 'vote')
     } catch (e: any) {
-      console.error('Login error:', e)
-      setError(e.message || 'Authentication failed. Contact COMELEC.')
+      setError(e.message)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   function handleSignout() {
-    signOut({ global: true }).then(() => {
-        localStorage.clear();
-        window.location.href = '/'; // Hard reload to kill memory cache
-    })
+    setToken(null)
+    setUser(null)
+    setScreen('signup')
   }
 
   if (screen === 'loading') return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#f5c400' }}>
-      Authenticating...
+      Connecting...
     </div>
   )
 
@@ -190,7 +144,7 @@ export default function App() {
            <span style={{ fontWeight: 'bold', fontSize: '0.9rem', letterSpacing: '1px' }}>CNAG-CICS <span style={{ color: '#f5c400' }}>AOA</span></span>
         </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          {isAdmin && (
+          {user?.isAdmin && (
             <button 
               onClick={() => setScreen('admin')} 
               style={{ background: screen === 'admin' ? '#f5c400' : 'none', border: '1px solid #f5c400', color: screen === 'admin' ? 'black' : '#f5c400', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}
@@ -212,7 +166,7 @@ export default function App() {
           </button>
         </div>
       </nav>
-      {screen === 'vote' ? <VotingPage user={user} /> : <AdminPage /> }
+      {screen === 'vote' ? <VotingPage token={token} /> : <AdminPage token={token} /> }
     </div>
   )
 }
