@@ -42,7 +42,8 @@ const lambdaRole = backend.apiFunction.resources.lambda.role;
 if (lambdaRole) {
   hasVotedTable.grantReadWriteData(lambdaRole);
   resultsTable.grantReadWriteData(lambdaRole);
-  windowParam.grantReadWrite(lambdaRole);
+  windowParam.grantRead(lambdaRole);
+  windowParam.grantWrite(lambdaRole);
 }
 
 // Add environment variables to Lambda
