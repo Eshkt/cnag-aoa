@@ -56,7 +56,8 @@ backend.apiFunction.addEnvironment('AMPLIFY_AUTH_USERPOOL_ID', 'ap-southeast-1_h
 // Create API Gateway REST API
 const userPool = backend.auth.resources.userPool;
 
-// Use RestApi for better control. No default CORS.
+// Use RestApi for total control. 
+// We DO NOT set defaultCorsPreflightOptions here.
 const api = new apigw.RestApi(backend.stack, 'VotingApi', {
   restApiName: 'VotingApi',
   deployOptions: {
@@ -68,18 +69,19 @@ const authorizer = new apigw.CognitoUserPoolsAuthorizer(backend.stack, 'VotingAu
   cognitoUserPools: [userPool],
 });
 
-// Route everything to Lambda. 
-// OPTIONS must have NONE authorizer so preflight works.
 const lambdaIntegration = new apigw.LambdaIntegration(backend.apiFunction.resources.lambda);
 
 const addRoutes = (resource: apigw.IResource) => {
-  // Catch-all (GET, POST, etc.) needs Auth
+  // ANY method with Authorizer. 
+  // API Gateway should NOT add CORS headers here.
   resource.addMethod('ANY', lambdaIntegration, {
     authorizationType: apigw.AuthorizationType.COGNITO,
     authorizer: authorizer,
   });
 
-  // OPTIONS needs NO Auth
+  // OPTIONS method with NONE authorizer for preflight.
+  // We route this to Lambda so handler.ts can return the restricted origin.
+  // NO responseParameters or integrationResponses here to avoid duplicates.
   resource.addMethod('OPTIONS', lambdaIntegration, {
     authorizationType: apigw.AuthorizationType.NONE,
   });
