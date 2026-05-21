@@ -66,7 +66,7 @@ export default function App() {
         options: {
           userAttributes: {
             email,
-            'custom:fullname': fullName,
+            name: fullName,
             'custom:studentNumber': studentNumber,
           }
         }
