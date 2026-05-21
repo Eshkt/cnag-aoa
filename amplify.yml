@@ -21,6 +21,6 @@ frontend:
     paths:
       - node_modules/**/*
 redirects:
-  - source: '/<*>'
+  - source: '</^[^.]+$/>'
     target: '/index.html'
     status: '200'
