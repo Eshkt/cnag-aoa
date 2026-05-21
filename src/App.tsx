@@ -1,5 +1,5 @@
 import { Amplify } from 'aws-amplify'
-import { signUp, signIn, signOut, getCurrentUser, fetchAuthSession } from 'aws-amplify/auth'
+import { signUp, signIn, signOut, getCurrentUser, fetchAuthSession, fetchUserAttributes } from 'aws-amplify/auth'
 // @ts-ignore
 import outputs from '../amplify_outputs.json'
 import { useState, useEffect } from 'react'
@@ -37,7 +37,8 @@ export default function App() {
   async function checkUser() {
     try {
       const u = await getCurrentUser()
-      setUser(u)
+      const attrs = await fetchUserAttributes() // Fresh attributes
+      setUser({ ...u, ...attrs })
       
       const session = await fetchAuthSession()
       const groups = (session.tokens?.idToken?.payload['cognito:groups'] as string[]) || []
@@ -65,18 +66,17 @@ export default function App() {
     const password = makePassword(email)
 
     try {
-      // 1. Force clear old session first
+      // PROBLEM 1: Force clear old session first
       try {
         await signOut({ global: true });
       } catch (e) {
-        // Ignore if no session
+        // Ignore
       }
 
-      // 2. Try sign in first
+      // PROBLEM 2: Try sign in first
       try {
         await signIn({ username: email, password })
       } catch (signInErr: any) {
-        // 3. If user doesn't exist, sign up then sign in
         if (signInErr.name === 'UserNotFoundException') {
           await signUp({
             username: email,
@@ -95,6 +95,7 @@ export default function App() {
         }
       }
 
+      // Fetch fresh data immediately after success
       await checkUser()
     } catch (e: any) {
       console.error('Login error:', e)
@@ -105,8 +106,8 @@ export default function App() {
 
   function handleSignout() {
     signOut({ global: true }).then(() => {
-        setUser(null)
-        setScreen('signup')
+        localStorage.clear();
+        window.location.href = '/'; // Hard reload to kill memory cache
     })
   }
 

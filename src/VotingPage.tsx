@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchAuthSession } from 'aws-amplify/auth';
+import { fetchAuthSession, fetchUserAttributes } from 'aws-amplify/auth';
 // @ts-ignore
 import outputs from '../amplify_outputs.json';
 
@@ -18,7 +18,7 @@ interface PositionGroup {
   candidates: Candidate[];
 }
 
-export default function VotingPage({ user }: { user: any }) {
+export default function VotingPage({ user: propUser }: { user: any }) {
   const [groups, setGroups] = useState<PositionGroup[]>([]);
   const [selections, setSelections] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<{ isOpen: boolean, hasVoted: boolean, name: string, studentNumber: string } | null>(null);
@@ -35,6 +35,9 @@ export default function VotingPage({ user }: { user: any }) {
     try {
       const session = await fetchAuthSession();
       const token = session.tokens?.idToken?.toString();
+      
+      // FRESH attributes to avoid stale session data
+      const attrs = await fetchUserAttributes();
 
       const [statusRes, candidatesRes] = await Promise.all([
         fetch(`${API_URL}/vote-status`, {
@@ -48,7 +51,12 @@ export default function VotingPage({ user }: { user: any }) {
       const statusData = await statusRes.json();
       const candidatesData = await candidatesRes.json();
 
-      setStatus(statusData);
+      // Override name/studentNumber from status with fresh attrs if needed
+      setStatus({
+        ...statusData,
+        name: attrs.name || statusData.name,
+        studentNumber: attrs['custom:studentNumber'] as string || statusData.studentNumber
+      });
       setGroups(candidatesData);
     } catch (err) {
       console.error('Fetch error:', err);
@@ -101,11 +109,13 @@ export default function VotingPage({ user }: { user: any }) {
     </div>
   );
 
+  const displayName = status?.name ? status.name.charAt(0).toUpperCase() + status.name.slice(1) : '';
+
   if (votedSuccess || status?.hasVoted) return (
     <div style={{ padding: '4rem 2rem', textAlign: 'center', color: 'white' }}>
       <div style={{ background: '#111118', padding: '3rem', borderRadius: '16px', maxWidth: '500px', margin: '0 auto', border: '1px solid #222' }}>
         <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✅</div>
-        <h2 style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>Thank you, {status?.name}!</h2>
+        <h2 style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>Thank you, {displayName}!</h2>
         <p style={{ color: '#aaa' }}>Your vote has been securely recorded for the AOA Ratification.</p>
         <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '2rem' }}>Student Number: {status?.studentNumber}</p>
       </div>

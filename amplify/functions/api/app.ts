@@ -25,7 +25,7 @@ const HAS_VOTED_TABLE = process.env.HAS_VOTED_TABLE;
 const RESULTS_TABLE = process.env.RESULTS_TABLE;
 const WINDOW_PARAM = process.env.WINDOW_PARAM || '/voting/window-open';
 
-// --- 2. CANDIDATES DATA (AOA RATIFICATION) ---
+// --- 2. BALLOT DATA (AOA RATIFICATION) ---
 const CANDIDATES = [
   {
     id: 'ratify-aoa',
