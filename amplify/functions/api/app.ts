@@ -25,7 +25,10 @@ const USER_POOL_ID = process.env.AMPLIFY_AUTH_USERPOOL_ID;
 
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: 'https://main.d23np9c7e29dad.amplifyapp.com',
+  credentials: true
+}));
 app.use(express.json());
 
 // --- 2. ROBUST JWT CHECK ---
