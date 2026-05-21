@@ -54,19 +54,63 @@ backend.apiFunction.addEnvironment('AMPLIFY_AUTH_USERPOOL_ID', 'ap-southeast-1_8
 
 
 // Create API Gateway REST API
-// We REMOVE defaultCorsPreflightOptions here to stop API Gateway from adding duplicate CORS headers.
-// The Lambda handler now handles CORS exclusively.
 const userPool = backend.auth.resources.userPool;
-const api = new apigw.LambdaRestApi(backend.stack, 'VotingApi', {
-  handler: backend.apiFunction.resources.lambda,
-  proxy: true,
-  defaultMethodOptions: {
-    authorizationType: apigw.AuthorizationType.COGNITO,
-    authorizer: new apigw.CognitoUserPoolsAuthorizer(backend.stack, 'VotingAuthorizer', {
-      cognitoUserPools: [userPool],
-    }),
+
+// Use RestApi for better control over methods and authorizers
+const api = new apigw.RestApi(backend.stack, 'VotingApi', {
+  restApiName: 'VotingApi',
+  deployOptions: {
+    stageName: 'prod',
   },
+  // Disable default CORS to avoid duplicates
 });
+
+const authorizer = new apigw.CognitoUserPoolsAuthorizer(backend.stack, 'VotingAuthorizer', {
+  cognitoUserPools: [userPool],
+});
+
+// Helper to add resource with ANY and OPTIONS
+const addResourceWithCors = (resource: apigw.IResource) => {
+  // ANY method with Authorizer
+  resource.addMethod('ANY', new apigw.LambdaIntegration(backend.apiFunction.resources.lambda), {
+    authorizationType: apigw.AuthorizationType.COGNITO,
+    authorizer: authorizer,
+  });
+
+  // OPTIONS method with NONE authorizer for preflight
+  resource.addMethod('OPTIONS', new apigw.MockIntegration({
+    integrationResponses: [{
+      statusCode: '200',
+      responseParameters: {
+        'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+        'method.response.header.Access-Control-Allow-Methods': "'GET,POST,OPTIONS'",
+        'method.response.header.Access-Control-Allow-Origin': "'https://main.d23np9c7e29dad.amplifyapp.com'",
+        'method.response.header.Access-Control-Allow-Credentials': "'true'",
+      },
+    }],
+    passthroughBehavior: apigw.PassthroughBehavior.NEVER,
+    requestTemplates: {
+      "application/json": "{\"statusCode\": 200}"
+    },
+  }), {
+    methodResponses: [{
+      statusCode: '200',
+      responseParameters: {
+        'method.response.header.Access-Control-Allow-Headers': true,
+        'method.response.header.Access-Control-Allow-Methods': true,
+        'method.response.header.Access-Control-Allow-Origin': true,
+        'method.response.header.Access-Control-Allow-Credentials': true,
+      },
+    }],
+  });
+};
+
+// Root /
+addResourceWithCors(api.root);
+
+// Proxy /{proxy+}
+const proxy = api.root.addResource('{proxy+}');
+addResourceWithCors(proxy);
 
 // Expose API URL as custom output so frontend can read it
 backend.addOutput({
