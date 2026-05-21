@@ -5,7 +5,7 @@ import outputs from '../amplify_outputs.json';
 
 Amplify.configure(outputs);
 
-const API_URL = outputs.custom.apiEndpoint;
+const API_URL = outputs.custom.apiEndpoint.replace(/\/$/, '');
 const TOTAL_ELIGIBLE_VOTERS = Number(process.env.TOTAL_ELIGIBLE_VOTERS || '200');
 
 interface CognitoSession {
