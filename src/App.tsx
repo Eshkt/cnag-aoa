@@ -1,16 +1,15 @@
 import { Amplify } from 'aws-amplify'
-import { signUp, signIn, getCurrentUser } from 'aws-amplify/auth'
+import { signUp, signIn, getCurrentUser, fetchAuthSession } from 'aws-amplify/auth'
 // @ts-ignore
 import outputs from '../amplify_outputs.json'
 import { useState, useEffect } from 'react'
 import VotingPage from './VotingPage'
-import Dashboard from './Dashboard'
+import AdminPage from './AdminPage'
 
 Amplify.configure(outputs)
 
-type Screen = 'signup' | 'vote' | 'dashboard'
+type Screen = 'signup' | 'vote' | 'admin' | 'loading'
 
-// Deterministic password so same user can re-enter without remembering one
 function makePassword(email: string): string {
   let hash = 0
   for (let i = 0; i < email.length; i++) {
@@ -22,36 +21,44 @@ function makePassword(email: string): string {
 }
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('signup')
+  const [screen, setScreen] = useState<Screen>('loading')
   const [fullName, setFullName] = useState('')
   const [studentNumber, setStudentNumber] = useState('')
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState<any>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    getCurrentUser()
-      .then((u) => {
-        setUser(u);
-        setScreen('vote')
-      })
-      .catch(() => setScreen('signup'))
+    checkUser()
   }, [])
+
+  async function checkUser() {
+    try {
+      const u = await getCurrentUser()
+      setUser(u)
+      
+      const session = await fetchAuthSession()
+      const groups = (session.tokens?.idToken?.payload['cognito:groups'] as string[]) || []
+      const admin = groups.includes('comelec-admin')
+      setIsAdmin(admin)
+
+      // Auto route to admin if admin, else vote
+      setScreen(admin ? 'admin' : 'vote')
+    } catch {
+      setScreen('signup')
+    }
+  }
 
   async function handleEnter() {
     setError('')
-    // Validate UST email
     if (!email.endsWith('@ust.edu.ph')) {
       setError('Only @ust.edu.ph emails are allowed.')
       return
     }
-    if (!fullName.trim()) {
-      setError('Please enter your full name.')
-      return
-    }
-    if (!studentNumber.trim()) {
-      setError('Please enter your student number.')
+    if (!fullName.trim() || !studentNumber.trim()) {
+      setError('Please fill in all fields.')
       return
     }
 
@@ -59,7 +66,6 @@ export default function App() {
     const password = makePassword(email)
 
     try {
-      // Try signup first
       await signUp({
         username: email,
         password,
@@ -72,7 +78,6 @@ export default function App() {
         }
       })
     } catch (e: any) {
-      // Already registered is fine — just sign them in
       if (e.name !== 'UsernameExistsException') {
         setError(e.message || 'Could not register. Try again.')
         setLoading(false)
@@ -80,12 +85,9 @@ export default function App() {
       }
     }
 
-    // Sign in after signup (or if already exists)
     try {
       await signIn({ username: email, password })
-      const u = await getCurrentUser()
-      setUser(u)
-      setScreen('vote')
+      await checkUser()
     } catch (e: any) {
       setError(e.message || 'Could not sign in. Contact COMELEC.')
     }
@@ -97,6 +99,12 @@ export default function App() {
     setUser(null)
     setScreen('signup')
   }
+
+  if (screen === 'loading') return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#f5c400' }}>
+      Authenticating...
+    </div>
+  )
 
   if (screen === 'signup') return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', fontFamily: 'system-ui, sans-serif', padding: '1rem' }}>
@@ -164,24 +172,36 @@ export default function App() {
   )
 
   return (
-    <div>
-      <nav style={{ padding: '1rem 1.5rem', background: '#1a1a2e', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontWeight: 'bold', fontSize: '1rem' }}>
-          CNAG-CICS AOA Voting System
-        </span>
-        <div>
-          <button onClick={() => setScreen('vote')} style={{ marginRight: 8, background: 'none', border: '1px solid #4a9eff', color: '#4a9eff', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer' }}>
-            Vote
+    <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
+      <nav style={{ padding: '1rem 1.5rem', background: '#111118', borderBottom: '1px solid #222', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', sticky: 'top', zIndex: 50 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+           <img src="/ust-white.png" style={{ height: '30px' }} />
+           <span style={{ fontWeight: 'bold', fontSize: '0.9rem', letterSpacing: '1px' }}>CNAG-CICS <span style={{ color: '#f5c400' }}>AOA</span></span>
+        </div>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          {isAdmin && (
+            <button 
+              onClick={() => setScreen('admin')} 
+              style={{ background: screen === 'admin' ? '#f5c400' : 'none', border: '1px solid #f5c400', color: screen === 'admin' ? 'black' : '#f5c400', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}
+            >
+              ADMIN
+            </button>
+          )}
+          <button 
+            onClick={() => setScreen('vote')} 
+            style={{ background: screen === 'vote' ? '#f5c400' : 'none', border: '1px solid #f5c400', color: screen === 'vote' ? 'black' : '#f5c400', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}
+          >
+            VOTE
           </button>
-          <button onClick={() => setScreen('dashboard')} style={{ marginRight: 8, background: 'none', border: '1px solid #4a9eff', color: '#4a9eff', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer' }}>
-            Dashboard
-          </button>
-          <button onClick={handleSignout} style={{ background: 'none', border: '1px solid #ff6b6b', color: '#ff6b6b', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer' }}>
+          <button 
+            onClick={handleSignout} 
+            style={{ background: 'none', border: '1px solid #444', color: '#aaa', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}
+          >
             Sign Out
           </button>
         </div>
       </nav>
-      {screen === 'vote' ? <VotingPage user={user} /> : <Dashboard user={user} /> }
+      {screen === 'vote' ? <VotingPage user={user} /> : <AdminPage /> }
     </div>
   )
 }
