@@ -7,185 +7,306 @@ const API_URL = outputs.custom.apiEndpoint.replace(/\/$/, '');
 interface Turnout {
   totalVoted: number;
   totalEligible: number;
-  isOpen: boolean;
+  windowOpen: boolean;
 }
 
-interface ResultCandidate {
+interface Results {
+  yes: { count: number, percentage: number };
+  no: { count: number, percentage: number };
+  total: number;
+}
+
+interface Voter {
+  voterId: string;
   name: string;
-  votes: number;
+  email: string;
+  timestamp: string;
+  voteHash: string;
+  selections?: string;
 }
 
-type Results = Record<string, ResultCandidate[]>;
+type Tab = 'Overview' | 'Results' | 'Voters' | 'Export';
 
-export default function AdminPage({ token }: { token: string | null }) {
+export default function AdminPage() {
+  const [adminToken, setAdminToken] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  const [tab, setTab] = useState<Tab>('Overview');
   const [turnout, setTurnout] = useState<Turnout | null>(null);
-  const [results, setResults] = useState<Results>({});
-  const [loading, setLoading] = useState(true);
-  const [updatingWindow, setUpdatingWindow] = useState(false);
+  const [results, setResults] = useState<Results | null>(null);
+  const [voters, setVoters] = useState<Voter[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 30000); // Auto refresh 30s
+    if (!adminToken) return;
+    fetchDashboard();
+    const interval = setInterval(fetchDashboard, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [adminToken]);
 
-  async function fetchData() {
-    if (!token) return;
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
     try {
-      const headers = { 'Authorization': `Bearer ${token}` };
-
-      const [turnoutRes, resultsRes] = await Promise.all([
-        fetch(`${API_URL}/admin/turnout`, { headers }),
-        fetch(`${API_URL}/admin/results`, { headers })
-      ]);
-
-      setTurnout(await turnoutRes.json());
-      setResults(await resultsRes.json());
-    } catch (err) {
-      console.error('Admin fetch error:', err);
+      const res = await fetch(`${API_URL}/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Login failed');
+      setAdminToken(data.token);
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   }
 
+  async function fetchDashboard() {
+    if (!adminToken) return;
+    try {
+      const headers = { 'Authorization': `Bearer ${adminToken}` };
+      const [tRes, rRes, vRes] = await Promise.all([
+        fetch(`${API_URL}/admin/turnout`, { headers }),
+        fetch(`${API_URL}/admin/results`, { headers }),
+        fetch(`${API_URL}/admin/voters`, { headers })
+      ]);
+
+      if (tRes.status === 401) {
+          setAdminToken(null);
+          return;
+      }
+
+      setTurnout(await tRes.json());
+      setResults(await rRes.json());
+      setVoters(await vRes.json());
+    } catch (err) {
+      console.error('Fetch error:', err);
+    }
+  }
+
   async function toggleWindow() {
-    if (!turnout || !token) return;
-    setUpdatingWindow(true);
+    if (!adminToken || !turnout) return;
     try {
       const res = await fetch(`${API_URL}/admin/voting-window`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${adminToken}`
         },
-        body: JSON.stringify({ open: !turnout.isOpen })
+        body: JSON.stringify({ open: !turnout.windowOpen })
       });
-
-      if (res.ok) {
-        setTurnout(prev => prev ? { ...prev, isOpen: !prev.isOpen } : null);
-      }
+      if (res.ok) fetchDashboard();
     } catch (err) {
-      alert('Failed to toggle window');
-    } finally {
-      setUpdatingWindow(false);
+      alert('Toggle failed');
     }
   }
 
-  async function exportCSV() {
-    if (!token) return;
-    try {
-      const res = await fetch(`${API_URL}/admin/voters`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const voters = await res.json();
+  function downloadCSV(type: 'audit' | 'comelec') {
+    const headers = type === 'audit' 
+        ? ['#', 'Full Name', 'Student Number', 'Email', 'Choice', 'Timestamp']
+        : ['#', 'Full Name', 'Student Number', 'Email', 'Timestamp'];
 
-      const headers = ['Student Number', 'Name', 'Email', 'Timestamp', 'Vote Hash'];
-      const rows = voters.map((v: any) => [v.voterId, v.name, v.email, v.timestamp, v.voteHash]);
-      
-      const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", `COMELEC_AUDIT_${new Date().toISOString().split('T')[0]}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (err) {
-      alert('Export failed');
-    }
+    const rows = voters.map((v, i) => {
+        const selections = v.selections ? JSON.parse(v.selections) : {};
+        const choice = selections['ratify-aoa']?.toUpperCase() || 'N/A';
+        const date = new Date(v.timestamp).toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
+        
+        return type === 'audit'
+            ? [i + 1, v.name, v.voterId, v.email, choice, date]
+            : [i + 1, v.name, v.voterId, v.email, date];
+    });
+
+    const content = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([content], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `AOA-Ratification-${type.toUpperCase()}-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
   }
 
-  if (loading) return <div style={{ color: 'white', padding: '2rem' }}>Loading Admin Dashboard...</div>;
+  if (!adminToken) return (
+    <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', padding: '1rem' }}>
+      <form onSubmit={handleLogin} style={{ background: '#111118', padding: '2.5rem', borderRadius: '16px', width: '100%', maxWidth: '380px', border: '1px solid #222' }}>
+        <h2 style={{ color: 'white', textAlign: 'center', marginBottom: '2rem' }}>COMELEC ADMIN</h2>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ display: 'block', color: '#666', fontSize: '0.8rem', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Admin Email</label>
+          <input 
+            type="email" 
+            value={email} 
+            onChange={e => setEmail(e.target.value)} 
+            placeholder="admin@ust.edu.ph"
+            required
+            style={{ width: '100%', padding: '0.8rem', background: '#0a0a0a', border: '1px solid #333', borderRadius: '8px', color: 'white', boxSizing: 'border-box' }}
+          />
+        </div>
+        {error && <p style={{ color: '#e8001c', fontSize: '0.85rem', textAlign: 'center' }}>{error}</p>}
+        <button type="submit" disabled={loading} style={{ width: '100%', padding: '0.9rem', background: '#e8001c', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+          {loading ? 'Verifying...' : 'Login to Dashboard'}
+        </button>
+      </form>
+    </div>
+  );
 
-  const turnoutPercent = turnout ? (turnout.totalVoted / turnout.totalEligible) * 100 : 0;
+  const filteredVoters = voters.filter(v => 
+    v.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    v.voterId.includes(searchTerm)
+  );
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto', color: 'white' }}>
+    <div style={{ padding: '2rem', maxWidth: '1100px', margin: '0 auto', color: 'white' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '1.8rem' }}>COMELEC Dashboard</h1>
-          <p style={{ color: '#666', margin: '0.2rem 0' }}>Live Monitoring & Controls</p>
+          <h1 style={{ margin: 0, fontSize: '1.8rem', color: '#f5c400' }}>COMELEC Dashboard</h1>
+          <p style={{ color: '#444', margin: '0.2rem 0' }}>Real-time Ratification Monitor</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button onClick={fetchData} style={{ padding: '0.6rem 1.2rem', background: '#222', border: '1px solid #333', color: 'white', borderRadius: '6px', cursor: 'pointer' }}>
-            Refresh ↻
-          </button>
-          <button onClick={exportCSV} style={{ padding: '0.6rem 1.2rem', background: '#f5c400', color: 'black', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>
-            Export Audit CSV
-          </button>
+        <div style={{ display: 'flex', background: '#111118', borderRadius: '8px', padding: '4px' }}>
+          {(['Overview', 'Results', 'Voters', 'Export'] as Tab[]).map(t => (
+            <button 
+                key={t} 
+                onClick={() => setTab(t)}
+                style={{ padding: '0.6rem 1.2rem', background: tab === t ? '#222' : 'transparent', border: 'none', color: tab === t ? '#f5c400' : '#666', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+                {t}
+            </button>
+          ))}
         </div>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '2rem', marginBottom: '4rem' }}>
-        {/* Turnout Card */}
-        <div style={{ background: '#111118', padding: '2rem', borderRadius: '16px', border: '1px solid #222' }}>
-          <h2 style={{ fontSize: '1rem', color: '#aaa', textTransform: 'uppercase', marginBottom: '1.5rem' }}>Voter Turnout</h2>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '2rem', fontWeight: 'bold' }}>{turnout?.totalVoted} <span style={{ fontSize: '1rem', color: '#444' }}>/ {turnout?.totalEligible}</span></span>
-            <span style={{ fontSize: '1.5rem', color: '#f5c400' }}>{turnoutPercent.toFixed(1)}%</span>
-          </div>
-          <div style={{ width: '100%', height: '12px', background: '#0a0a0a', borderRadius: '6px', overflow: 'hidden' }}>
-            <div style={{ width: `${turnoutPercent}%`, height: '100%', background: 'linear-gradient(90deg, #f5c400, #e8001c)', transition: 'width 1s ease-out' }} />
-          </div>
-        </div>
-
-        {/* Controls Card */}
-        <div style={{ background: '#111118', padding: '2rem', borderRadius: '16px', border: '1px solid #222', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '1rem', color: '#aaa', textTransform: 'uppercase', marginBottom: '1.5rem' }}>Voting Window</h2>
-          <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: turnout?.isOpen ? '#00e868' : '#e8001c', marginBottom: '1rem' }}>
-            {turnout?.isOpen ? '● OPEN' : '● CLOSED'}
-          </div>
-          <button 
-            onClick={toggleWindow}
-            disabled={updatingWindow}
-            style={{ 
-              width: '100%', 
-              padding: '0.8rem', 
-              background: turnout?.isOpen ? '#e8001c' : '#00e868', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '8px', 
-              fontWeight: 'bold', 
-              cursor: 'pointer' 
-            }}
-          >
-            {updatingWindow ? 'Wait...' : turnout?.isOpen ? 'CLOSE VOTING' : 'OPEN VOTING'}
-          </button>
-        </div>
-      </div>
-
-      <section>
-        <h2 style={{ marginBottom: '2rem', borderBottom: '1px solid #222', paddingBottom: '1rem' }}>Election Results</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(450px, 1fr))', gap: '2rem' }}>
-          {Object.entries(results).map(([position, candidates]) => {
-            const total = candidates.reduce((sum, c) => sum + c.votes, 0);
-            
-            return (
-              <div key={position} style={{ background: '#111118', padding: '1.5rem', borderRadius: '12px', border: '1px solid #222' }}>
-                <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', color: '#aaa' }}>{position}</h3>
-                {candidates.map(c => {
-                  const percent = total > 0 ? (c.votes / total) * 100 : 0;
-                  return (
-                    <div key={c.name} style={{ marginBottom: '1.25rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
-                        <span>{c.name === 'yes' ? 'YES' : c.name === 'no' ? 'NO' : c.name}</span>
-                        <span>{c.votes} votes ({percent.toFixed(1)}%)</span>
-                      </div>
-                      <div style={{ width: '100%', height: '8px', background: '#0a0a0a', borderRadius: '4px' }}>
-                        <div style={{ width: `${percent}%`, height: '100%', background: c.name === 'yes' ? '#00e868' : '#e8001c', borderRadius: '4px' }} />
-                      </div>
-                    </div>
-                  );
-                })}
-                <div style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#444', textAlign: 'right' }}>
-                  Total votes for position: {total}
+      {tab === 'Overview' && turnout && (
+        <div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '2rem' }}>
+            <div style={{ background: '#111118', padding: '2.5rem', borderRadius: '16px', border: '1px solid #222' }}>
+                <h3 style={{ color: '#666', fontSize: '0.9rem', textTransform: 'uppercase', marginBottom: '1.5rem' }}>Voter Turnout</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
+                    <span style={{ fontSize: '3.5rem', fontWeight: 'bold' }}>{turnout.totalVoted} <span style={{ fontSize: '1.2rem', color: '#333' }}>/ {turnout.totalEligible}</span></span>
+                    <span style={{ fontSize: '2rem', color: '#00e868' }}>{((turnout.totalVoted / turnout.totalEligible) * 100).toFixed(1)}%</span>
                 </div>
-              </div>
-            );
-          })}
+                <div style={{ height: '14px', background: '#0a0a0a', borderRadius: '7px', overflow: 'hidden' }}>
+                    <div style={{ width: `${(turnout.totalVoted / turnout.totalEligible) * 100}%`, height: '100%', background: 'linear-gradient(90deg, #00e868, #f5c400)', transition: 'width 1s' }} />
+                </div>
+            </div>
+
+            <div style={{ background: '#111118', padding: '2rem', borderRadius: '16px', border: '1px solid #222', textAlign: 'center' }}>
+                <h3 style={{ color: '#666', fontSize: '0.9rem', textTransform: 'uppercase', marginBottom: '2rem' }}>System Status</h3>
+                <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: turnout.windowOpen ? '#00e868' : '#e8001c', marginBottom: '2rem' }}>
+                    {turnout.windowOpen ? '● VOTING OPEN' : '○ VOTING CLOSED'}
+                </div>
+                <button 
+                    onClick={toggleWindow}
+                    style={{ width: '100%', padding: '1rem', background: turnout.windowOpen ? '#e8001c' : '#00e868', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                    {turnout.windowOpen ? 'CLOSE WINDOW NOW' : 'OPEN WINDOW NOW'}
+                </button>
+            </div>
+          </div>
         </div>
-      </section>
+      )}
+
+      {tab === 'Results' && results && (
+          <div style={{ maxWidth: '700px', margin: '0 auto', background: '#111118', padding: '3rem', borderRadius: '20px', border: '1px solid #222' }}>
+            <h2 style={{ textAlign: 'center', marginBottom: '3rem' }}>Live Tally</h2>
+            
+            {['yes', 'no'].map(choice => {
+                const data = choice === 'yes' ? results.yes : results.no;
+                const isLeading = (choice === 'yes' ? results.yes.count > results.no.count : results.no.count > results.yes.count);
+                return (
+                    <div key={choice} style={{ marginBottom: '2.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                            <span style={{ fontWeight: 'bold', fontSize: '1.1rem', color: isLeading ? '#00e868' : 'white' }}>
+                                {choice.toUpperCase()} {isLeading && '🏆'}
+                            </span>
+                            <span>{data.count} votes ({data.percentage.toFixed(1)}%)</span>
+                        </div>
+                        <div style={{ height: '40px', background: '#0a0a0a', borderRadius: '8px', overflow: 'hidden', border: '1px solid #222' }}>
+                            <div style={{ width: `${data.percentage}%`, height: '100%', background: choice === 'yes' ? '#00e868' : '#e8001c', transition: 'width 1s' }} />
+                        </div>
+                    </div>
+                )
+            })}
+            <div style={{ textAlign: 'center', color: '#444', marginTop: '2rem' }}>Total validated ballots: {results.total}</div>
+          </div>
+      )}
+
+      {tab === 'Voters' && (
+          <div style={{ background: '#111118', borderRadius: '16px', border: '1px solid #222', overflow: 'hidden' }}>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid #222' }}>
+                <input 
+                    type="text" 
+                    placeholder="Search by name or student number..." 
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    style={{ width: '100%', padding: '0.8rem', background: '#0a0a0a', border: '1px solid #333', borderRadius: '8px', color: 'white' }}
+                />
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                    <thead>
+                        <tr style={{ textAlign: 'left', background: '#0a0a0a', color: '#666' }}>
+                            <th style={{ padding: '1rem' }}>#</th>
+                            <th style={{ padding: '1rem' }}>Full Name</th>
+                            <th style={{ padding: '1rem' }}>Student Number</th>
+                            <th style={{ padding: '1rem' }}>Email</th>
+                            <th style={{ padding: '1rem' }}>Choice</th>
+                            <th style={{ padding: '1rem' }}>Timestamp (PHT)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredVoters.map((v, i) => {
+                            const sel = v.selections ? JSON.parse(v.selections) : {};
+                            const choice = sel['ratify-aoa'];
+                            return (
+                                <tr key={v.voterId} style={{ borderBottom: '1px solid #1a1a1a' }}>
+                                    <td style={{ padding: '1rem', color: '#333' }}>{i + 1}</td>
+                                    <td style={{ padding: '1rem', fontWeight: 'bold' }}>{v.name}</td>
+                                    <td style={{ padding: '1rem' }}>{v.voterId}</td>
+                                    <td style={{ padding: '1rem', color: '#666' }}>{v.email}</td>
+                                    <td style={{ padding: '1rem' }}>
+                                        <span style={{ color: choice === 'yes' ? '#00e868' : '#e8001c', fontWeight: 'bold' }}>{choice?.toUpperCase()}</span>
+                                    </td>
+                                    <td style={{ padding: '1rem', fontSize: '0.8rem', color: '#444' }}>
+                                        {new Date(v.timestamp).toLocaleString('en-PH', { timeZone: 'Asia/Manila' })}
+                                    </td>
+                                </tr>
+                            )
+                        })}
+                    </tbody>
+                </table>
+            </div>
+          </div>
+      )}
+
+      {tab === 'Export' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+            <div style={{ background: '#111118', padding: '2rem', borderRadius: '16px', border: '1px solid #222', textAlign: 'center' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📊</div>
+                <h3>Full Audit CSV</h3>
+                <p style={{ color: '#666', fontSize: '0.85rem', marginBottom: '2rem' }}>Contains all data including voter names and their individual choices. FOR INTERNAL USE ONLY.</p>
+                <button onClick={() => downloadCSV('audit')} style={{ width: '100%', padding: '0.8rem', background: '#f5c400', color: 'black', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Export Full Audit</button>
+            </div>
+            <div style={{ background: '#111118', padding: '2rem', borderRadius: '16px', border: '1px solid #222', textAlign: 'center' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🛡️</div>
+                <h3>COMELEC CSV</h3>
+                <p style={{ color: '#666', fontSize: '0.85rem', marginBottom: '2rem' }}>Contains participant names but REMOVES individual choices to preserve ballot secrecy.</p>
+                <button onClick={() => downloadCSV('comelec')} style={{ width: '100%', padding: '0.8rem', background: '#white', color: 'black', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Export COMELEC List</button>
+            </div>
+            <div style={{ background: '#111118', padding: '2rem', borderRadius: '16px', border: '1px solid #222', textAlign: 'center' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🗄️</div>
+                <h3>Raw JSON</h3>
+                <p style={{ color: '#666', fontSize: '0.85rem', marginBottom: '2rem' }}>Full raw database dump of the HasVotedTable for historical archive or recovery.</p>
+                <button onClick={() => {
+                    const blob = new Blob([JSON.stringify(voters, null, 2)], { type: 'application/json' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href = url; a.download = `AOA-Raw-Data-${Date.now()}.json`; a.click();
+                }} style={{ width: '100%', padding: '0.8rem', background: '#444', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Export Raw JSON</button>
+            </div>
+          </div>
+      )}
     </div>
   );
 }

@@ -9,7 +9,7 @@ import {
   UpdateCommand 
 } from '@aws-sdk/lib-dynamodb';
 import { SSMClient, GetParameterCommand, PutParameterCommand } from '@aws-sdk/client-ssm';
-import { createHmac, timingSafeEqual } from 'crypto';
+import { createHmac, timingSafeEqual, randomUUID } from 'crypto';
 
 const app = express();
 const ddbClient = new DynamoDBClient({});
@@ -23,7 +23,15 @@ const WINDOW_PARAM = process.env.WINDOW_PARAM || '/voting/window-open';
 const HMAC_SECRET_PATH = process.env.HMAC_SECRET_PATH;
 
 let CACHED_SECRET: string | null = null;
-const ADMIN_EMAILS = ['admin@ust.edu.ph', 'comelec@ust.edu.ph']; // Hardcoded admin list
+const ADMIN_EMAILS = [
+    'admin@ust.edu.ph', 
+    'comelec@ust.edu.ph', 
+    'cnag.cics@ust.edu.ph', 
+    'franky.parcon.cics@ust.edu.ph'
+];
+
+// In-memory store for Admin sessions
+const ADMIN_SESSIONS = new Map<string, { email: string, exp: number }>();
 
 async function getSecret() {
   if (CACHED_SECRET) return CACHED_SECRET;
@@ -65,6 +73,19 @@ const checkSession = async (req: any, res: any, next: any) => {
   if (!authHeader || !authHeader.startsWith('Bearer ')) return res.status(401).json({ error: 'No session' });
 
   const token = authHeader.split(' ')[1];
+  
+  // Check if it's an Admin Session Token first
+  const adminSession = ADMIN_SESSIONS.get(token);
+  if (adminSession) {
+      if (Date.now() > adminSession.exp) {
+          ADMIN_SESSIONS.delete(token);
+          return res.status(401).json({ error: 'Admin session expired' });
+      }
+      req.voter = { email: adminSession.email, isAdmin: true };
+      return next();
+  }
+
+  // Otherwise validate as a Voter JWT
   const [data, signature] = token.split('.');
   if (!data || !signature) return res.status(401).json({ error: 'Invalid token format' });
 
@@ -99,14 +120,15 @@ app.use(express.json());
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
+// --- VOTER ROUTES ---
+
 app.post('/begin-session', async (req, res) => {
   const { name, studentNumber, email } = req.body;
   
-  if (!email?.endsWith('@ust.edu.ph')) return res.status(400).json({ error: 'Only @ust.edu.ph emails allowed' });
+  if (!email?.toLowerCase().endsWith('@ust.edu.ph')) return res.status(400).json({ error: 'Only @ust.edu.ph emails allowed' });
   if (!name || !studentNumber) return res.status(400).json({ error: 'Missing name or student number' });
 
   try {
-    // Check if already voted
     const votedRes = await ddbDocClient.send(new GetCommand({
       TableName: HAS_VOTED_TABLE,
       Key: { voterId: studentNumber }
@@ -136,7 +158,7 @@ app.get('/vote-status', checkSession, async (req: any, res) => {
 
     res.json({
       isOpen,
-      hasVoted: false, // If they have a token from /begin-session, they haven't voted yet
+      hasVoted: false,
       studentNumber: req.voter.studentNumber,
       name: req.voter.name
     });
@@ -153,7 +175,6 @@ app.post('/submit-vote', checkSession, async (req: any, res) => {
     const windowRes = await ssmClient.send(new GetParameterCommand({ Name: WINDOW_PARAM }));
     if (windowRes.Parameter?.Value !== 'true') return res.status(403).json({ error: 'Voting closed' });
 
-    // Record the vote
     try {
       await ddbDocClient.send(new PutCommand({
         TableName: HAS_VOTED_TABLE,
@@ -162,7 +183,7 @@ app.post('/submit-vote', checkSession, async (req: any, res) => {
           name,
           email,
           timestamp: new Date().toISOString(),
-          selections: JSON.stringify(selections), // Audit choices (encrypted in real life, plaintext for GA simplicity as requested)
+          selections: JSON.stringify(selections),
           voteHash: createHmac('sha256', 'audit-salt').update(JSON.stringify(selections)).digest('hex')
         },
         ConditionExpression: 'attribute_not_exists(voterId)'
@@ -172,7 +193,6 @@ app.post('/submit-vote', checkSession, async (req: any, res) => {
       throw e;
     }
 
-    // Increment results
     for (const [positionId, candidateId] of Object.entries(selections)) {
       await ddbDocClient.send(new UpdateCommand({
         TableName: RESULTS_TABLE,
@@ -184,17 +204,34 @@ app.post('/submit-vote', checkSession, async (req: any, res) => {
 
     res.json({ success: true });
   } catch (err) {
+    console.error('SUBMIT ERROR:', err);
     res.status(500).json({ error: 'Submission failed' });
   }
 });
 
 // --- ADMIN ROUTES ---
 
+app.post('/admin/login', (req, res) => {
+    const { email } = req.body;
+    if (!email || !ADMIN_EMAILS.includes(email.toLowerCase())) {
+        return res.status(403).json({ error: 'Access Denied' });
+    }
+
+    const token = randomUUID();
+    ADMIN_SESSIONS.set(token, { email, exp: Date.now() + (60 * 60 * 1000) }); // 1 hour session
+
+    res.json({ token, expiresIn: 3600 });
+});
+
 app.get('/admin/turnout', checkSession, checkAdmin, async (req, res) => {
   try {
     const votedRes = await ddbDocClient.send(new ScanCommand({ TableName: HAS_VOTED_TABLE, Select: 'COUNT' }));
     const windowRes = await ssmClient.send(new GetParameterCommand({ Name: WINDOW_PARAM }));
-    res.json({ totalVoted: votedRes.Count || 0, totalEligible: 200, isOpen: windowRes.Parameter?.Value === 'true' });
+    res.json({ 
+        totalVoted: votedRes.Count || 0, 
+        totalEligible: 200, 
+        windowOpen: windowRes.Parameter?.Value === 'true' 
+    });
   } catch (err) {
     res.status(500).json({ error: 'Fetch failed' });
   }
@@ -203,13 +240,20 @@ app.get('/admin/turnout', checkSession, checkAdmin, async (req, res) => {
 app.get('/admin/results', checkSession, checkAdmin, async (req, res) => {
   try {
     const results = await ddbDocClient.send(new ScanCommand({ TableName: RESULTS_TABLE }));
-    const grouped = results.Items?.reduce((acc: any, item: any) => {
-      const pos = item.proposalId;
-      if (!acc[pos]) acc[pos] = [];
-      acc[pos].push({ name: item.voteId, votes: item.voteCount || 0 });
-      return acc;
-    }, {});
-    res.json(grouped || {});
+    
+    // Group by position (specifically ratify-aoa)
+    const yesItem = results.Items?.find(i => i.voteId === 'yes');
+    const noItem = results.Items?.find(i => i.voteId === 'no');
+    
+    const yesCount = yesItem?.voteCount || 0;
+    const noCount = noItem?.voteCount || 0;
+    const total = yesCount + noCount;
+
+    res.json({
+        yes: { count: yesCount, percentage: total > 0 ? (yesCount / total) * 100 : 0 },
+        no: { count: noCount, percentage: total > 0 ? (noCount / total) * 100 : 0 },
+        total
+    });
   } catch (err) {
     res.status(500).json({ error: 'Fetch failed' });
   }
@@ -218,7 +262,11 @@ app.get('/admin/results', checkSession, checkAdmin, async (req, res) => {
 app.get('/admin/voters', checkSession, checkAdmin, async (req, res) => {
   try {
     const voters = await ddbDocClient.send(new ScanCommand({ TableName: HAS_VOTED_TABLE }));
-    res.json(voters.Items || []);
+    // Return sorted by timestamp descending
+    const sorted = (voters.Items || []).sort((a: any, b: any) => 
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+    res.json(sorted);
   } catch (err) {
     res.status(500).json({ error: 'Fetch failed' });
   }
@@ -227,8 +275,12 @@ app.get('/admin/voters', checkSession, checkAdmin, async (req, res) => {
 app.put('/admin/voting-window', checkSession, checkAdmin, async (req, res) => {
   try {
     const { open } = req.body;
-    await ssmClient.send(new PutParameterCommand({ Name: WINDOW_PARAM, Value: open ? 'true' : 'false', Overwrite: true }));
-    res.json({ success: true, isOpen: open });
+    await ssmClient.send(new PutParameterCommand({ 
+        Name: WINDOW_PARAM, 
+        Value: open ? 'true' : 'false', 
+        Overwrite: true 
+    }));
+    res.json({ success: true, windowOpen: open });
   } catch (err) {
     res.status(500).json({ error: 'Update failed' });
   }
