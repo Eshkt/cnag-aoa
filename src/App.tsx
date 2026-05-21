@@ -1,5 +1,5 @@
 import { Amplify } from 'aws-amplify'
-import { signUp, signIn, getCurrentUser, fetchAuthSession } from 'aws-amplify/auth'
+import { signUp, signIn, signOut, getCurrentUser, fetchAuthSession } from 'aws-amplify/auth'
 // @ts-ignore
 import outputs from '../amplify_outputs.json'
 import { useState, useEffect } from 'react'
@@ -44,7 +44,6 @@ export default function App() {
       const admin = groups.includes('comelec-admin')
       setIsAdmin(admin)
 
-      // Auto route to admin if admin, else vote
       setScreen(admin ? 'admin' : 'vote')
     } catch {
       setScreen('signup')
@@ -66,38 +65,49 @@ export default function App() {
     const password = makePassword(email)
 
     try {
-      await signUp({
-        username: email,
-        password,
-        options: {
-          userAttributes: {
-            email,
-            name: fullName,
-            'custom:studentNumber': studentNumber,
-          }
-        }
-      })
-    } catch (e: any) {
-      if (e.name !== 'UsernameExistsException') {
-        setError(e.message || 'Could not register. Try again.')
-        setLoading(false)
-        return
+      // 1. Force clear old session first
+      try {
+        await signOut({ global: true });
+      } catch (e) {
+        // Ignore if no session
       }
-    }
 
-    try {
-      await signIn({ username: email, password })
+      // 2. Try sign in first
+      try {
+        await signIn({ username: email, password })
+      } catch (signInErr: any) {
+        // 3. If user doesn't exist, sign up then sign in
+        if (signInErr.name === 'UserNotFoundException') {
+          await signUp({
+            username: email,
+            password,
+            options: {
+              userAttributes: {
+                email,
+                name: fullName,
+                'custom:studentNumber': studentNumber,
+              }
+            }
+          })
+          await signIn({ username: email, password })
+        } else {
+          throw signInErr
+        }
+      }
+
       await checkUser()
     } catch (e: any) {
-      setError(e.message || 'Could not sign in. Contact COMELEC.')
+      console.error('Login error:', e)
+      setError(e.message || 'Authentication failed. Contact COMELEC.')
     }
     setLoading(false)
   }
 
   function handleSignout() {
-    import('aws-amplify/auth').then(({ signOut }) => signOut())
-    setUser(null)
-    setScreen('signup')
+    signOut({ global: true }).then(() => {
+        setUser(null)
+        setScreen('signup')
+    })
   }
 
   if (screen === 'loading') return (

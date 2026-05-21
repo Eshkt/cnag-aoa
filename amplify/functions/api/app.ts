@@ -25,20 +25,14 @@ const HAS_VOTED_TABLE = process.env.HAS_VOTED_TABLE;
 const RESULTS_TABLE = process.env.RESULTS_TABLE;
 const WINDOW_PARAM = process.env.WINDOW_PARAM || '/voting/window-open';
 
-// --- 2. CANDIDATES DATA ---
+// --- 2. CANDIDATES DATA (AOA RATIFICATION) ---
 const CANDIDATES = [
   {
-    position: 'President',
+    id: 'ratify-aoa',
+    position: 'AOA Ratification',
     candidates: [
-      { id: 'pres-1', name: 'John Doe', party: 'Alliance', photo: 'https://via.placeholder.com/150' },
-      { id: 'pres-2', name: 'Jane Smith', party: 'Independent', photo: 'https://via.placeholder.com/150' },
-    ]
-  },
-  {
-    position: 'Vice President',
-    candidates: [
-      { id: 'vp-1', name: 'Alice Wong', party: 'Alliance', photo: 'https://via.placeholder.com/150' },
-      { id: 'vp-2', name: 'Bob Lim', party: 'Independent', photo: 'https://via.placeholder.com/150' },
+      { id: 'yes', name: 'I ratify the AOA', party: 'YES', photo: 'https://via.placeholder.com/150?text=YES' },
+      { id: 'no', name: 'I do not ratify the AOA', party: 'NO', photo: 'https://via.placeholder.com/150?text=NO' },
     ]
   }
 ];

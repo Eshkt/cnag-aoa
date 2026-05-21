@@ -13,6 +13,7 @@ interface Candidate {
 }
 
 interface PositionGroup {
+  id: string;
   position: string;
   candidates: Candidate[];
 }
@@ -56,14 +57,14 @@ export default function VotingPage({ user }: { user: any }) {
     }
   }
 
-  const handleSelect = (position: string, candidateId: string) => {
+  const handleSelect = (positionId: string, candidateId: string) => {
     setSelections(prev => ({
       ...prev,
-      [position]: prev[position] === candidateId ? '' : candidateId
+      [positionId]: prev[positionId] === candidateId ? '' : candidateId
     }));
   };
 
-  const isComplete = groups.every(g => selections[g.position]);
+  const isComplete = groups.every(g => selections[g.id || g.position]);
 
   async function handleSubmit() {
     setLoadingSubmit(true);
@@ -122,88 +123,98 @@ export default function VotingPage({ user }: { user: any }) {
   );
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '900px', margin: '0 auto', color: 'white' }}>
-      <header style={{ marginBottom: '3rem', borderBottom: '1px solid #222', paddingBottom: '1.5rem' }}>
-        <h1 style={{ margin: 0, fontSize: '1.6rem', color: '#f5c400' }}>Official Ballot</h1>
-        <p style={{ color: '#666', margin: '0.5rem 0' }}>{status.name} • {status.studentNumber}</p>
+    <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto', color: 'white' }}>
+      <header style={{ textAlign: 'center', marginBottom: '4rem' }}>
+        <h1 style={{ fontSize: '2rem', color: '#f5c400', marginBottom: '0.5rem' }}>AOA Ratification</h1>
+        <p style={{ color: '#aaa' }}>Official Ballot • May 30, 2026</p>
+        <div style={{ marginTop: '1.5rem', fontSize: '0.9rem', color: '#666' }}>
+          {status.name} ({status.studentNumber})
+        </div>
       </header>
 
       {groups.map(group => (
-        <section key={group.position} style={{ marginBottom: '4rem' }}>
-          <h2 style={{ fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '2px', color: '#aaa', marginBottom: '1.5rem' }}>
-            {group.position}
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.5rem' }}>
-            {group.candidates.map(c => (
-              <div 
-                key={c.id}
-                onClick={() => handleSelect(group.position, c.id)}
-                style={{
-                  background: '#111118',
-                  borderRadius: '12px',
-                  padding: '1.5rem',
-                  cursor: 'pointer',
-                  border: selections[group.position] === c.id ? '2px solid #f5c400' : '1px solid #222',
-                  transition: 'all 0.2s',
-                  position: 'relative'
-                }}
-              >
-                {selections[group.position] === c.id && (
-                  <div style={{ position: 'absolute', top: 10, right: 10, background: '#f5c400', color: 'black', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                    ✓
+        <section key={group.id || group.position} style={{ marginBottom: '4rem' }}>
+          <div style={{ background: '#111118', borderRadius: '16px', padding: '2rem', border: '1px solid #222' }}>
+            <h2 style={{ fontSize: '1.4rem', textAlign: 'center', marginBottom: '2rem', color: '#f5c400' }}>
+              {group.position}
+            </h2>
+            <p style={{ textAlign: 'center', color: '#888', marginBottom: '2.5rem', fontSize: '0.95rem', lineHeight: 1.6 }}>
+              Do you ratify the Articles of Association (AOA) as presented in the General Assembly?
+            </p>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              {group.candidates.map(c => (
+                <div 
+                  key={c.id}
+                  onClick={() => handleSelect(group.id || group.position, c.id)}
+                  style={{
+                    background: selections[group.id || group.position] === c.id ? (c.id === 'yes' ? 'rgba(0, 232, 104, 0.1)' : 'rgba(232, 0, 28, 0.1)') : '#0a0a0a',
+                    borderRadius: '12px',
+                    padding: '2rem',
+                    cursor: 'pointer',
+                    border: selections[group.id || group.position] === c.id 
+                        ? `2px solid ${c.id === 'yes' ? '#00e868' : '#e8001c'}` 
+                        : '1px solid #222',
+                    textAlign: 'center',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
+                    {c.id === 'yes' ? '👍' : '👎'}
                   </div>
-                )}
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                  <img src={c.photo} alt={c.name} style={{ width: 60, height: 60, borderRadius: '50%', background: '#333' }} />
-                  <div>
-                    <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{c.name}</div>
-                    <div style={{ fontSize: '0.85rem', color: '#666' }}>{c.party}</div>
+                  <div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: selections[group.id || group.position] === c.id ? 'white' : '#aaa' }}>
+                    {c.name.toUpperCase()}
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
       ))}
 
-      <div style={{ position: 'sticky', bottom: '2rem', background: 'rgba(10,10,10,0.8)', backdropFilter: 'blur(8px)', padding: '1.5rem', borderRadius: '16px', border: '1px solid #333', textAlign: 'center', boxShadow: '0 -10px 40px rgba(0,0,0,0.5)' }}>
+      <div style={{ textAlign: 'center', marginTop: '2rem' }}>
         <button 
-          disabled={!isComplete}
+          disabled={!isComplete || submitting}
           onClick={() => setShowConfirm(true)}
           style={{
             background: isComplete ? '#e8001c' : '#333',
             color: 'white',
             border: 'none',
-            padding: '1rem 3rem',
-            borderRadius: '8px',
-            fontSize: '1.1rem',
+            padding: '1.2rem 4rem',
+            borderRadius: '10px',
+            fontSize: '1.2rem',
             fontWeight: 'bold',
             cursor: isComplete ? 'pointer' : 'not-allowed',
-            transition: 'all 0.3s'
+            transition: 'all 0.3s',
+            width: '100%',
+            maxWidth: '400px'
           }}
         >
-          {isComplete ? 'SUBMIT VOTE →' : 'Complete All Selections'}
+          {isComplete ? 'SUBMIT MY VOTE' : 'Make a Selection'}
         </button>
       </div>
 
       {showConfirm && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1rem' }}>
-          <div style={{ background: '#1a1a2e', padding: '2rem', borderRadius: '16px', maxWidth: '400px', width: '100%', border: '1px solid #333' }}>
-            <h3>Final Confirmation</h3>
-            <p style={{ color: '#aaa', lineHeight: 1.5 }}>You are about to submit your votes. This action is final and cannot be reversed.</p>
-            <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1rem' }}>
+          <div style={{ background: '#1a1a2e', padding: '2.5rem', borderRadius: '20px', maxWidth: '450px', width: '100%', border: '1px solid #333', textAlign: 'center' }}>
+            <h3 style={{ fontSize: '1.5rem', color: '#f5c400' }}>Confirm Your Vote</h3>
+            <p style={{ color: '#aaa', margin: '1.5rem 0', lineHeight: 1.6 }}>
+              You are selecting: <strong style={{ color: 'white' }}>{selections['ratify-aoa']?.toUpperCase()}</strong><br/><br/>
+              This action is final and your student number will be recorded as having participated.
+            </p>
+            <div style={{ marginTop: '2.5rem', display: 'flex', gap: '1rem' }}>
               <button 
                 onClick={() => setShowConfirm(false)}
-                style={{ flex: 1, padding: '0.8rem', background: 'transparent', border: '1px solid #444', color: 'white', borderRadius: '8px', cursor: 'pointer' }}
+                style={{ flex: 1, padding: '1rem', background: 'transparent', border: '1px solid #444', color: 'white', borderRadius: '8px', cursor: 'pointer' }}
               >
-                Back
+                Go Back
               </button>
               <button 
                 onClick={handleSubmit}
                 disabled={submitting}
-                style={{ flex: 1, padding: '0.8rem', background: '#e8001c', border: 'none', color: 'white', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                style={{ flex: 1, padding: '1rem', background: '#e8001c', border: 'none', color: 'white', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
               >
-                {submitting ? 'Submitting...' : 'Confirm'}
+                {submitting ? 'Submitting...' : 'Confirm Vote'}
               </button>
             </div>
           </div>
