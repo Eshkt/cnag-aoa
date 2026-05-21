@@ -20,3 +20,7 @@ frontend:
   cache:
     paths:
       - node_modules/**/*
+redirects:
+  - source: '/<*>'
+    target: '/index.html'
+    status: '200'
