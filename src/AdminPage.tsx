@@ -39,12 +39,46 @@ export default function AdminPage() {
   const [voters, setVoters] = useState<Voter[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Auto-refresh interval
   useEffect(() => {
     if (!adminToken) return;
     fetchDashboard();
     const interval = setInterval(fetchDashboard, 30000);
     return () => clearInterval(interval);
   }, [adminToken]);
+
+  // ERROR 3: Centralized fetch helper
+  async function adminFetch(path: string, options: any = {}) {
+    if (!adminToken) return null;
+    
+    try {
+      const res = await fetch(`${API_URL}${path}`, {
+        ...options,
+        headers: {
+          'Authorization': `Bearer ${adminToken}`, // ERROR 1: Always send Bearer token
+          'Content-Type': 'application/json',
+          ...(options.headers || {})
+        }
+      });
+
+      // ERROR 1: Handle 401 (Session expired or Cold Start reset)
+      if (res.status === 401) {
+        setAdminToken(null);
+        setError('Session expired. Please login again.');
+        return null;
+      }
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || `Request failed: ${res.status}`);
+      }
+
+      return await res.json();
+    } catch (err: any) {
+      console.error(`Admin fetch error [${path}]:`, err);
+      return null;
+    }
+  }
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -67,43 +101,28 @@ export default function AdminPage() {
   }
 
   async function fetchDashboard() {
-    if (!adminToken) return;
-    try {
-      const headers = { 'Authorization': `Bearer ${adminToken}` };
-      const [tRes, rRes, vRes] = await Promise.all([
-        fetch(`${API_URL}/admin/turnout`, { headers }),
-        fetch(`${API_URL}/admin/results`, { headers }),
-        fetch(`${API_URL}/admin/voters`, { headers })
-      ]);
+    const [tData, rData, vData] = await Promise.all([
+      adminFetch('/admin/turnout'),
+      adminFetch('/admin/results'),
+      adminFetch('/admin/voters')
+    ]);
 
-      if (tRes.status === 401) {
-          setAdminToken(null);
-          return;
-      }
-
-      setTurnout(await tRes.json());
-      setResults(await rRes.json());
-      setVoters(await vRes.json());
-    } catch (err) {
-      console.error('Fetch error:', err);
+    if (tData) setTurnout(tData);
+    if (rData) setResults(rData);
+    if (vData) {
+        // ERROR 2: Robust array unwrap
+        const voterList = Array.isArray(vData) ? vData : (vData.voters ?? vData.items ?? []);
+        setVoters(voterList);
     }
   }
 
   async function toggleWindow() {
-    if (!adminToken || !turnout) return;
-    try {
-      const res = await fetch(`${API_URL}/admin/voting-window`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`
-        },
-        body: JSON.stringify({ open: !turnout.windowOpen })
-      });
-      if (res.ok) fetchDashboard();
-    } catch (err) {
-      alert('Toggle failed');
-    }
+    if (!turnout) return;
+    const data = await adminFetch('/admin/voting-window', {
+      method: 'PUT',
+      body: JSON.stringify({ open: !turnout.windowOpen })
+    });
+    if (data) fetchDashboard();
   }
 
   function downloadCSV(type: 'audit' | 'comelec') {
@@ -153,10 +172,11 @@ export default function AdminPage() {
     </div>
   );
 
-  const filteredVoters = voters.filter(v => 
+  // ERROR 2: Guard for filter
+  const filteredVoters = Array.isArray(voters) ? voters.filter(v => 
     v.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     v.voterId.includes(searchTerm)
-  );
+  ) : [];
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1100px', margin: '0 auto', color: 'white' }}>
@@ -214,7 +234,8 @@ export default function AdminPage() {
             
             {['yes', 'no'].map(choice => {
                 const data = choice === 'yes' ? results.yes : results.no;
-                const isLeading = (choice === 'yes' ? results.yes.count > results.no.count : results.no.count > results.yes.count);
+                const other = choice === 'yes' ? results.no : results.yes;
+                const isLeading = data.count > other.count;
                 return (
                     <div key={choice} style={{ marginBottom: '2.5rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
