@@ -25,10 +25,7 @@ const USER_POOL_ID = process.env.AMPLIFY_AUTH_USERPOOL_ID;
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: 'https://main.d23np9c7e29dad.amplifyapp.com',
-  credentials: true
-}));
+// CORS middleware removed. handler.ts handles CORS to prevent duplicates.
 app.use(express.json());
 
 // --- 2. ROBUST JWT CHECK ---
@@ -57,7 +54,6 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.post('/vote', checkJwt, async (req: any, res) => {
     try {
         console.log('VOTE REQUEST RECEIVED:', JSON.stringify(req.body));
-        // Placeholder logic - ensure we return 200 to test connectivity
         res.json({ message: 'vote recorded (placeholder)' });
     } catch (err: any) {
         console.error('VOTE ERROR:', err);
@@ -78,8 +74,7 @@ app.get('/status', async (req, res) => {
 app.use((err: any, req: any, res: any, next: any) => {
   console.error('UNHANDLED EXPRESS ERROR:', err);
   res.status(err.status || 500).json({
-    error: err.message || 'Internal Server Error',
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    error: err.message || 'Internal Server Error'
   });
 });
 

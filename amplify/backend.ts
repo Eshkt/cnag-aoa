@@ -6,7 +6,6 @@ import * as cdk from 'aws-cdk-lib';
 import * as ddb from 'aws-cdk-lib/aws-dynamodb';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
-import * as cognito from 'aws-cdk-lib/aws-cognito';
 
 /**
  * @see https://docs.amplify.aws/gen2/build-a-backend/
@@ -56,63 +55,41 @@ backend.apiFunction.addEnvironment('AMPLIFY_AUTH_USERPOOL_ID', 'ap-southeast-1_8
 // Create API Gateway REST API
 const userPool = backend.auth.resources.userPool;
 
-// Use RestApi for better control over methods and authorizers
+// Use RestApi for better control. No default CORS.
 const api = new apigw.RestApi(backend.stack, 'VotingApi', {
   restApiName: 'VotingApi',
   deployOptions: {
     stageName: 'prod',
   },
-  // Disable default CORS to avoid duplicates
 });
 
 const authorizer = new apigw.CognitoUserPoolsAuthorizer(backend.stack, 'VotingAuthorizer', {
   cognitoUserPools: [userPool],
 });
 
-// Helper to add resource with ANY and OPTIONS
-const addResourceWithCors = (resource: apigw.IResource) => {
-  // ANY method with Authorizer
-  resource.addMethod('ANY', new apigw.LambdaIntegration(backend.apiFunction.resources.lambda), {
+// Route everything to Lambda. 
+// OPTIONS must have NONE authorizer so preflight works.
+const lambdaIntegration = new apigw.LambdaIntegration(backend.apiFunction.resources.lambda);
+
+const addRoutes = (resource: apigw.IResource) => {
+  // Catch-all (GET, POST, etc.) needs Auth
+  resource.addMethod('ANY', lambdaIntegration, {
     authorizationType: apigw.AuthorizationType.COGNITO,
     authorizer: authorizer,
   });
 
-  // OPTIONS method with NONE authorizer for preflight
-  resource.addMethod('OPTIONS', new apigw.MockIntegration({
-    integrationResponses: [{
-      statusCode: '200',
-      responseParameters: {
-        'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-        'method.response.header.Access-Control-Allow-Methods': "'GET,POST,OPTIONS'",
-        'method.response.header.Access-Control-Allow-Origin': "'https://main.d23np9c7e29dad.amplifyapp.com'",
-        'method.response.header.Access-Control-Allow-Credentials': "'true'",
-      },
-    }],
-    passthroughBehavior: apigw.PassthroughBehavior.NEVER,
-    requestTemplates: {
-      "application/json": "{\"statusCode\": 200}"
-    },
-  }), {
-    methodResponses: [{
-      statusCode: '200',
-      responseParameters: {
-        'method.response.header.Access-Control-Allow-Headers': true,
-        'method.response.header.Access-Control-Allow-Methods': true,
-        'method.response.header.Access-Control-Allow-Origin': true,
-        'method.response.header.Access-Control-Allow-Credentials': true,
-      },
-    }],
+  // OPTIONS needs NO Auth
+  resource.addMethod('OPTIONS', lambdaIntegration, {
+    authorizationType: apigw.AuthorizationType.NONE,
   });
 };
 
-// Root /
-addResourceWithCors(api.root);
-
-// Proxy /{proxy+}
+// Apply routes to / and /{proxy+}
+addRoutes(api.root);
 const proxy = api.root.addResource('{proxy+}');
-addResourceWithCors(proxy);
+addRoutes(proxy);
 
-// Expose API URL as custom output so frontend can read it
+// Expose API URL as custom output
 backend.addOutput({
   custom: {
     apiEndpoint: api.url,
