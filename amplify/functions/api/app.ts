@@ -23,15 +23,15 @@ const WINDOW_PARAM = process.env.WINDOW_PARAM || '/voting/window-open';
 const HMAC_SECRET_PATH = process.env.HMAC_SECRET_PATH;
 
 let CACHED_SECRET: string | null = null;
+
+// FIX 1: Hardcoded Admin Emails (Exact list)
 const ADMIN_EMAILS = [
-    'admin@ust.edu.ph', 
-    'comelec@ust.edu.ph', 
-    'cnag.cics@ust.edu.ph', 
-    'franky.parcon.cics@ust.edu.ph'
+  'cnag.cics@ust.edu.ph',
+  'franky.parcon.cics@ust.edu.ph'
 ];
 
-// In-memory store for Admin sessions
-const ADMIN_SESSIONS = new Map<string, { email: string, exp: number }>();
+// Map for Admin sessions (module-level, survives Lambda warm starts)
+const adminSessions = new Map<string, number>(); // Map<token, expiryTimestamp>
 
 async function getSecret() {
   if (CACHED_SECRET) return CACHED_SECRET;
@@ -68,24 +68,11 @@ async function signToken(payload: any) {
   return `${data}.${signature}`;
 }
 
-const checkSession = async (req: any, res: any, next: any) => {
+const checkVoterSession = async (req: any, res: any, next: any) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) return res.status(401).json({ error: 'No session' });
 
   const token = authHeader.split(' ')[1];
-  
-  // Check if it's an Admin Session Token first
-  const adminSession = ADMIN_SESSIONS.get(token);
-  if (adminSession) {
-      if (Date.now() > adminSession.exp) {
-          ADMIN_SESSIONS.delete(token);
-          return res.status(401).json({ error: 'Admin session expired' });
-      }
-      req.voter = { email: adminSession.email, isAdmin: true };
-      return next();
-  }
-
-  // Otherwise validate as a Voter JWT
   const [data, signature] = token.split('.');
   if (!data || !signature) return res.status(401).json({ error: 'Invalid token format' });
 
@@ -107,10 +94,28 @@ const checkSession = async (req: any, res: any, next: any) => {
   }
 };
 
-const checkAdmin = (req: any, res: any, next: any) => {
-  if (!req.voter?.isAdmin) return res.status(403).json({ error: 'Admin access required' });
+// FIX 1: Admin Middleware (Bearer Header Validation)
+function requireAdmin(req: any, res: any, next: any) {
+  const authHeader = req.headers['authorization'] || '';
+  const token = authHeader.replace('Bearer ', '').trim();
+  
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+  
+  const expiry = adminSessions.get(token);
+  if (!expiry) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+  
+  if (Date.now() > expiry) {
+    adminSessions.delete(token);
+    return res.status(401).json({ error: 'Token expired' });
+  }
+  
+  req.voter = { isAdmin: true };
   next();
-};
+}
 
 // --- 4. MIDDLEWARE ---
 app.use(helmet());
@@ -123,20 +128,16 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 // --- VOTER ROUTES ---
 
 app.post('/begin-session', async (req, res) => {
-  console.log('begin-session body:', JSON.stringify(req.body));
   const { name, studentNumber, email } = req.body;
   
   if (!email || !name || !studentNumber) {
-    return res.status(400).json({ 
-        error: 'Missing fields', 
-        received: { name, studentNumber, email } 
-    });
+    return res.status(400).json({ error: 'Missing fields' });
   }
 
   if (!email.toLowerCase().endsWith('@ust.edu.ph')) return res.status(400).json({ error: 'Only @ust.edu.ph emails allowed' });
 
-  // Whitelist admin emails to bypass and reject with clear message
-  if (ADMIN_EMAILS.includes(email.toLowerCase())) {
+  // Whitelist admin emails to reject voter login
+  if (ADMIN_EMAILS.includes(email.toLowerCase().trim())) {
       return res.status(403).json({ error: 'Admin accounts use /admin login' });
   }
 
@@ -157,14 +158,13 @@ app.post('/begin-session', async (req, res) => {
     
     res.json({ token });
   } catch (err) {
-    console.error('BEGIN SESSION ERROR:', err);
     res.status(500).json({ error: 'Failed to begin session' });
   }
 });
 
-app.get('/candidates', checkSession, (req, res) => res.json(CANDIDATES));
+app.get('/candidates', checkVoterSession, (req, res) => res.json(CANDIDATES));
 
-app.get('/vote-status', checkSession, async (req: any, res) => {
+app.get('/vote-status', checkVoterSession, async (req: any, res) => {
   try {
     const windowRes = await ssmClient.send(new GetParameterCommand({ Name: WINDOW_PARAM }));
     const isOpen = windowRes.Parameter?.Value === 'true';
@@ -180,7 +180,7 @@ app.get('/vote-status', checkSession, async (req: any, res) => {
   }
 });
 
-app.post('/submit-vote', checkSession, async (req: any, res) => {
+app.post('/submit-vote', checkVoterSession, async (req: any, res) => {
   try {
     const { selections } = req.body;
     const { studentNumber, name, email } = req.voter;
@@ -217,26 +217,27 @@ app.post('/submit-vote', checkSession, async (req: any, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    console.error('SUBMIT ERROR:', err);
     res.status(500).json({ error: 'Submission failed' });
   }
 });
 
 // --- ADMIN ROUTES ---
 
+// FIX 1: Admin Login with UUID
 app.post('/admin/login', (req, res) => {
     const { email } = req.body;
-    if (!email || !ADMIN_EMAILS.includes(email.toLowerCase())) {
-        return res.status(403).json({ error: 'Access Denied' });
+    if (!email || !ADMIN_EMAILS.includes(email.toLowerCase().trim())) {
+        return res.status(403).json({ error: 'Access denied' });
     }
 
     const token = randomUUID();
-    ADMIN_SESSIONS.set(token, { email, exp: Date.now() + (60 * 60 * 1000) }); // 1 hour session
+    const expiry = Date.now() + (4 * 60 * 60 * 1000); // 4 hours
+    adminSessions.set(token, expiry);
 
-    res.json({ token, expiresIn: 3600 });
+    res.json({ token, expiresIn: 14400 });
 });
 
-app.get('/admin/turnout', checkSession, checkAdmin, async (req, res) => {
+app.get('/admin/turnout', requireAdmin, async (req, res) => {
   try {
     const votedRes = await ddbDocClient.send(new ScanCommand({ TableName: HAS_VOTED_TABLE, Select: 'COUNT' }));
     const windowRes = await ssmClient.send(new GetParameterCommand({ Name: WINDOW_PARAM }));
@@ -250,7 +251,7 @@ app.get('/admin/turnout', checkSession, checkAdmin, async (req, res) => {
   }
 });
 
-app.get('/admin/results', checkSession, checkAdmin, async (req, res) => {
+app.get('/admin/results', requireAdmin, async (req, res) => {
   try {
     const results = await ddbDocClient.send(new ScanCommand({ TableName: RESULTS_TABLE }));
     
@@ -271,7 +272,7 @@ app.get('/admin/results', checkSession, checkAdmin, async (req, res) => {
   }
 });
 
-app.get('/admin/voters', checkSession, checkAdmin, async (req, res) => {
+app.get('/admin/voters', requireAdmin, async (req, res) => {
   try {
     const voters = await ddbDocClient.send(new ScanCommand({ TableName: HAS_VOTED_TABLE }));
     const sorted = (voters.Items || []).sort((a: any, b: any) => 
@@ -283,7 +284,7 @@ app.get('/admin/voters', checkSession, checkAdmin, async (req, res) => {
   }
 });
 
-app.put('/admin/voting-window', checkSession, checkAdmin, async (req, res) => {
+app.put('/admin/voting-window', requireAdmin, async (req, res) => {
   try {
     const { open } = req.body;
     await ssmClient.send(new PutParameterCommand({ 

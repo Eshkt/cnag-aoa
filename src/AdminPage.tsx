@@ -52,6 +52,7 @@ export default function AdminPage({ initialToken }: { initialToken: string | nul
     return () => clearInterval(interval);
   }, [adminToken]);
 
+  // FIX 2: Centralized fetch helper for Admin
   async function adminFetch(path: string, options: any = {}) {
     if (!adminToken) return null;
     
@@ -59,14 +60,16 @@ export default function AdminPage({ initialToken }: { initialToken: string | nul
       const res = await fetch(`${API_URL}${path}`, {
         ...options,
         headers: {
-          'Authorization': `Bearer ${adminToken}`,
+          'Authorization': `Bearer ${adminToken}`, // Always send Bearer token
           'Content-Type': 'application/json',
           ...(options.headers || {})
         }
       });
 
+      // Handle 401 (Expired or Cold Start reset)
       if (res.status === 401) {
         setAdminToken(null);
+        setError('Session expired. Please log in again.');
         return null;
       }
 
@@ -79,6 +82,7 @@ export default function AdminPage({ initialToken }: { initialToken: string | nul
     }
   }
 
+  // FIX 3: Admin Login handling (trim/lowercase)
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -87,10 +91,13 @@ export default function AdminPage({ initialToken }: { initialToken: string | nul
       const res = await fetch(`${API_URL}/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email: email.toLowerCase().trim() })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Login failed');
+      if (!res.ok) {
+          if (res.status === 403) throw new Error('This email is not authorized for admin access.');
+          throw new Error(data.error || 'Login failed');
+      }
       setAdminToken(data.token);
     } catch (err: any) {
       setError(err.message);
@@ -109,6 +116,7 @@ export default function AdminPage({ initialToken }: { initialToken: string | nul
     if (tData) setTurnout(tData);
     if (rData) setResults(rData);
     if (vData) {
+        // Robust array unwrap
         const voterList = Array.isArray(vData) ? vData : (vData.voters ?? vData.items ?? []);
         setVoters(voterList);
     }
@@ -162,9 +170,9 @@ export default function AdminPage({ initialToken }: { initialToken: string | nul
             style={{ width: '100%', padding: '0.8rem', background: '#0a0a0a', border: '1px solid #333', borderRadius: '8px', color: 'white', boxSizing: 'border-box' }}
           />
         </div>
-        {error && <p style={{ color: '#e8001c', fontSize: '0.85rem', textAlign: 'center' }}>{error}</p>}
+        {error && <p style={{ color: '#e8001c', fontSize: '0.85rem', textAlign: 'center', marginBottom: '1rem' }}>{error}</p>}
         <button type="submit" disabled={loading} style={{ width: '100%', padding: '0.9rem', background: '#e8001c', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
-          {loading ? 'Verifying...' : 'Login to Dashboard'}
+          {loading ? 'Verifying...' : 'Access Admin Panel'}
         </button>
       </form>
     </div>

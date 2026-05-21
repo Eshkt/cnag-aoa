@@ -6,10 +6,10 @@ import AdminPage from './AdminPage'
 
 const API_URL = outputs.custom.apiEndpoint.replace(/\/$/, '');
 
-type Screen = 'voter-login' | 'admin-login' | 'vote' | 'admin-dashboard' | 'loading'
+type Screen = 'voter-login' | 'admin-login' | 'vote' | 'admin-dashboard'
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('voter-login')
+  const [screen, setScreen] = useState<'voter-login' | 'admin-login' | 'vote' | 'admin-dashboard'>('voter-login')
   const [fullName, setFullName] = useState('')
   const [studentNumber, setStudentNumber] = useState('')
   const [email, setEmail] = useState('')
@@ -67,6 +67,7 @@ export default function App() {
     }
   }
 
+  // FIX 3: Admin Login with trim/lowercase
   async function handleAdminLogin(e: React.FormEvent) {
     e.preventDefault();
     setError('')
@@ -78,7 +79,10 @@ export default function App() {
         body: JSON.stringify({ email: adminEmail.trim().toLowerCase() })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Access Denied');
+      if (!res.ok) {
+          if (res.status === 403) throw new Error('This email is not authorized for admin access.');
+          throw new Error(data.error || 'Access Denied');
+      }
       
       setToken(data.token);
       setScreen('admin-dashboard');
@@ -154,7 +158,7 @@ export default function App() {
                 <label style={{ display: 'block', color: '#666', fontSize: '0.8rem', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Admin Email</label>
                 <input type="email" value={adminEmail} onChange={e => setAdminEmail(e.target.value)} placeholder="admin@ust.edu.ph" required style={{ width: '100%', padding: '0.8rem', background: '#0a0a0a', border: '1px solid #333', borderRadius: '8px', color: 'white', boxSizing: 'border-box' }} />
             </div>
-            {error && <p style={{ color: '#e8001c', fontSize: '0.85rem', textAlign: 'center' }}>{error}</p>}
+            {error && <p style={{ color: '#e8001c', fontSize: '0.85rem', textAlign: 'center', marginBottom: '1rem' }}>{error}</p>}
             <button type="submit" disabled={loading} style={{ width: '100%', padding: '0.9rem', background: '#e8001c', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
                 {loading ? 'Verifying...' : 'Access Admin Panel'}
             </button>
