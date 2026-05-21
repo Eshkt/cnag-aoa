@@ -123,10 +123,22 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 // --- VOTER ROUTES ---
 
 app.post('/begin-session', async (req, res) => {
+  console.log('begin-session body:', JSON.stringify(req.body));
   const { name, studentNumber, email } = req.body;
   
-  if (!email?.toLowerCase().endsWith('@ust.edu.ph')) return res.status(400).json({ error: 'Only @ust.edu.ph emails allowed' });
-  if (!name || !studentNumber) return res.status(400).json({ error: 'Missing name or student number' });
+  if (!email || !name || !studentNumber) {
+    return res.status(400).json({ 
+        error: 'Missing fields', 
+        received: { name, studentNumber, email } 
+    });
+  }
+
+  if (!email.toLowerCase().endsWith('@ust.edu.ph')) return res.status(400).json({ error: 'Only @ust.edu.ph emails allowed' });
+
+  // Whitelist admin emails to bypass and reject with clear message
+  if (ADMIN_EMAILS.includes(email.toLowerCase())) {
+      return res.status(403).json({ error: 'Admin accounts use /admin login' });
+  }
 
   try {
     const votedRes = await ddbDocClient.send(new GetCommand({
@@ -140,11 +152,12 @@ app.post('/begin-session', async (req, res) => {
         name, 
         studentNumber, 
         email,
-        isAdmin: ADMIN_EMAILS.includes(email.toLowerCase())
+        isAdmin: false
     });
     
     res.json({ token });
   } catch (err) {
+    console.error('BEGIN SESSION ERROR:', err);
     res.status(500).json({ error: 'Failed to begin session' });
   }
 });
@@ -241,7 +254,6 @@ app.get('/admin/results', checkSession, checkAdmin, async (req, res) => {
   try {
     const results = await ddbDocClient.send(new ScanCommand({ TableName: RESULTS_TABLE }));
     
-    // Group by position (specifically ratify-aoa)
     const yesItem = results.Items?.find(i => i.voteId === 'yes');
     const noItem = results.Items?.find(i => i.voteId === 'no');
     
@@ -262,7 +274,6 @@ app.get('/admin/results', checkSession, checkAdmin, async (req, res) => {
 app.get('/admin/voters', checkSession, checkAdmin, async (req, res) => {
   try {
     const voters = await ddbDocClient.send(new ScanCommand({ TableName: HAS_VOTED_TABLE }));
-    // Return sorted by timestamp descending
     const sorted = (voters.Items || []).sort((a: any, b: any) => 
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );

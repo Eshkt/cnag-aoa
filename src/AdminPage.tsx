@@ -27,8 +27,8 @@ interface Voter {
 
 type Tab = 'Overview' | 'Results' | 'Voters' | 'Export';
 
-export default function AdminPage() {
-  const [adminToken, setAdminToken] = useState<string | null>(null);
+export default function AdminPage({ initialToken }: { initialToken: string | null }) {
+  const [adminToken, setAdminToken] = useState<string | null>(initialToken);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -39,6 +39,11 @@ export default function AdminPage() {
   const [voters, setVoters] = useState<Voter[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Sync token if it changes from props
+  useEffect(() => {
+    setAdminToken(initialToken);
+  }, [initialToken]);
+
   // Auto-refresh interval
   useEffect(() => {
     if (!adminToken) return;
@@ -47,7 +52,6 @@ export default function AdminPage() {
     return () => clearInterval(interval);
   }, [adminToken]);
 
-  // ERROR 3: Centralized fetch helper
   async function adminFetch(path: string, options: any = {}) {
     if (!adminToken) return null;
     
@@ -55,25 +59,20 @@ export default function AdminPage() {
       const res = await fetch(`${API_URL}${path}`, {
         ...options,
         headers: {
-          'Authorization': `Bearer ${adminToken}`, // ERROR 1: Always send Bearer token
+          'Authorization': `Bearer ${adminToken}`,
           'Content-Type': 'application/json',
           ...(options.headers || {})
         }
       });
 
-      // ERROR 1: Handle 401 (Session expired or Cold Start reset)
       if (res.status === 401) {
         setAdminToken(null);
-        setError('Session expired. Please login again.');
         return null;
       }
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || `Request failed: ${res.status}`);
-      }
-
-      return await res.json();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Request failed');
+      return data;
     } catch (err: any) {
       console.error(`Admin fetch error [${path}]:`, err);
       return null;
@@ -110,7 +109,6 @@ export default function AdminPage() {
     if (tData) setTurnout(tData);
     if (rData) setResults(rData);
     if (vData) {
-        // ERROR 2: Robust array unwrap
         const voterList = Array.isArray(vData) ? vData : (vData.voters ?? vData.items ?? []);
         setVoters(voterList);
     }
@@ -172,7 +170,6 @@ export default function AdminPage() {
     </div>
   );
 
-  // ERROR 2: Guard for filter
   const filteredVoters = Array.isArray(voters) ? voters.filter(v => 
     v.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     v.voterId.includes(searchTerm)
@@ -314,7 +311,7 @@ export default function AdminPage() {
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🛡️</div>
                 <h3>COMELEC CSV</h3>
                 <p style={{ color: '#666', fontSize: '0.85rem', marginBottom: '2rem' }}>Contains participant names but REMOVES individual choices to preserve ballot secrecy.</p>
-                <button onClick={() => downloadCSV('comelec')} style={{ width: '100%', padding: '0.8rem', background: '#white', color: 'black', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Export COMELEC List</button>
+                <button onClick={() => downloadCSV('comelec')} style={{ width: '100%', padding: '0.8rem', background: 'white', color: 'black', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Export COMELEC List</button>
             </div>
             <div style={{ background: '#111118', padding: '2rem', borderRadius: '16px', border: '1px solid #222', textAlign: 'center' }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🗄️</div>

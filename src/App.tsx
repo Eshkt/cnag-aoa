@@ -6,24 +6,29 @@ import AdminPage from './AdminPage'
 
 const API_URL = outputs.custom.apiEndpoint.replace(/\/$/, '');
 
-type Screen = 'signup' | 'vote' | 'admin' | 'loading'
+type Screen = 'voter-login' | 'admin-login' | 'vote' | 'admin-dashboard' | 'loading'
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('signup')
+  const [screen, setScreen] = useState<Screen>('voter-login')
   const [fullName, setFullName] = useState('')
   const [studentNumber, setStudentNumber] = useState('')
   const [email, setEmail] = useState('')
+  const [adminEmail, setAdminEmail] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [token, setToken] = useState<string | null>(null)
   const [user, setUser] = useState<any>(null)
 
-  // Session check on load (though in-memory means it clears on refresh as requested)
   useEffect(() => {
-    setScreen('signup')
+    const path = window.location.pathname;
+    if (path.startsWith('/admin')) {
+      setScreen('admin-login');
+    } else {
+      setScreen('voter-login');
+    }
   }, [])
 
-  async function handleEnter() {
+  async function handleVoterEnter() {
     setError('')
     if (!email.toLowerCase().endsWith('@ust.edu.ph')) {
       setError('Only @ust.edu.ph emails are allowed.')
@@ -39,7 +44,11 @@ export default function App() {
       const res = await fetch(`${API_URL}/begin-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: fullName, studentNumber, email })
+        body: JSON.stringify({ 
+            name: fullName.trim(), 
+            studentNumber: studentNumber.trim(), 
+            email: email.trim().toLowerCase() 
+        })
       })
 
       const data = await res.json()
@@ -48,10 +57,9 @@ export default function App() {
       }
 
       setToken(data.token)
-      // Decode token for UI use (simple base64)
       const payload = JSON.parse(atob(data.token.split('.')[0]))
       setUser(payload)
-      setScreen(payload.isAdmin ? 'admin' : 'vote')
+      setScreen('vote')
     } catch (e: any) {
       setError(e.message)
     } finally {
@@ -59,19 +67,35 @@ export default function App() {
     }
   }
 
+  async function handleAdminLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setError('')
+    setLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: adminEmail.trim().toLowerCase() })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Access Denied');
+      
+      setToken(data.token);
+      setScreen('admin-dashboard');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function handleSignout() {
     setToken(null)
     setUser(null)
-    setScreen('signup')
+    setScreen(screen.includes('admin') ? 'admin-login' : 'voter-login')
   }
 
-  if (screen === 'loading') return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#f5c400' }}>
-      Connecting...
-    </div>
-  )
-
-  if (screen === 'signup') return (
+  if (screen === 'voter-login') return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', fontFamily: 'system-ui, sans-serif', padding: '1rem' }}>
       <div style={{ background: '#111118', border: '0.5px solid rgba(245,196,0,0.25)', borderRadius: '16px', width: '100%', maxWidth: '420px', padding: '2rem', color: 'white', }}>
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
@@ -96,77 +120,63 @@ export default function App() {
           </p>
         </div>
         <div style={{ height: '1.5px', background: 'linear-gradient(90deg, transparent, rgba(245,196,0,0.4), transparent)', margin: '0 0 1.25rem' }} />
-        {[
-          { label: 'Full Name', value: fullName, setter: setFullName, placeholder: 'Juan dela Cruz', type: 'text' },
-          { label: 'Student Number', value: studentNumber, setter: setStudentNumber, placeholder: '2021-00001', type: 'text' },
-          { label: 'UST Email', value: email, setter: setEmail, placeholder: 'juan.delacruz@ust.edu.ph', type: 'email' },
-        ].map(({ label, value, setter, placeholder, type }) => (
-          <div key={label} style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', fontSize: '11px', letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', marginBottom: '0.35rem' }}>
-              {label}
-            </label>
-            <input
-              type={type}
-              placeholder={placeholder}
-              value={value}
-              onChange={e => setter(e.target.value)}
-              style={{ width: '100%', padding: '0.7rem 0.9rem', background: '#0d0d18', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '8px', color: 'rgba(255,255,255,0.85)', fontSize: '0.9rem', boxSizing: 'border-box', outline: 'none', }}
-            />
-          </div>
-        ))}
-        {error && (
-          <p style={{ color: '#ff6b6b', fontSize: '0.82rem', marginBottom: '0.75rem', textAlign: 'center' }}>
-            {error}
-          </p>
-        )}
-        <button
-          onClick={handleEnter}
-          disabled={loading || !email || !fullName || !studentNumber}
-          style={{ width: '100%', padding: '0.8rem', background: loading ? '#444' : '#e8001c', color: 'white', border: 'none', borderRadius: '8px', fontSize: '0.95rem', fontWeight: 500, cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '0.5px', marginTop: '0.25rem' }}
-        >
+        
+        <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', fontSize: '11px', letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', marginBottom: '0.35rem' }}>Full Name</label>
+            <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Juan dela Cruz" style={{ width: '100%', padding: '0.7rem 0.9rem', background: '#0d0d18', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '8px', color: 'rgba(255,255,255,0.85)', fontSize: '0.9rem', boxSizing: 'border-box' }} />
+        </div>
+        <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', fontSize: '11px', letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', marginBottom: '0.35rem' }}>Student Number</label>
+            <input value={studentNumber} onChange={e => setStudentNumber(e.target.value)} placeholder="2021-00001" style={{ width: '100%', padding: '0.7rem 0.9rem', background: '#0d0d18', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '8px', color: 'rgba(255,255,255,0.85)', fontSize: '0.9rem', boxSizing: 'border-box' }} />
+        </div>
+        <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', fontSize: '11px', letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', marginBottom: '0.35rem' }}>UST Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="juan.delacruz@ust.edu.ph" style={{ width: '100%', padding: '0.7rem 0.9rem', background: '#0d0d18', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '8px', color: 'rgba(255,255,255,0.85)', fontSize: '0.9rem', boxSizing: 'border-box' }} />
+        </div>
+
+        {error && <p style={{ color: '#ff6b6b', fontSize: '0.82rem', marginBottom: '0.75rem', textAlign: 'center' }}>{error}</p>}
+        <button onClick={handleVoterEnter} disabled={loading || !email || !fullName || !studentNumber} style={{ width: '100%', padding: '0.8rem', background: loading ? '#444' : '#e8001c', color: 'white', border: 'none', borderRadius: '8px', fontSize: '0.95rem', fontWeight: 500, cursor: loading ? 'not-allowed' : 'pointer' }}>
           {loading ? 'Please wait...' : 'Enter Voting System →'}
         </button>
-        <p style={{ textAlign: 'center', fontSize: '0.72rem', color: 'rgba(255,255,255,0.25)', marginTop: '1.25rem', lineHeight: 1.6 }}>
-          Only registered CNAG-CICS members with{' '}
-          <span style={{ color: 'rgba(245,196,0,0.5)' }}>@ust.edu.ph</span>{' '}
-          emails may vote.<br />
-          Your participation is recorded for audit purposes.
-        </p>
+        
+        <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+            <button onClick={() => setScreen('admin-login')} style={{ background: 'none', border: 'none', color: '#444', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline' }}>Admin Access</button>
+        </div>
       </div>
+    </div>
+  )
+
+  if (screen === 'admin-login') return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', padding: '1rem' }}>
+        <form onSubmit={handleAdminLogin} style={{ background: '#111118', padding: '2.5rem', borderRadius: '16px', width: '100%', maxWidth: '380px', border: '1px solid #222' }}>
+            <h2 style={{ color: 'white', textAlign: 'center', marginBottom: '2rem' }}>COMELEC ADMIN</h2>
+            <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', color: '#666', fontSize: '0.8rem', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Admin Email</label>
+                <input type="email" value={adminEmail} onChange={e => setAdminEmail(e.target.value)} placeholder="admin@ust.edu.ph" required style={{ width: '100%', padding: '0.8rem', background: '#0a0a0a', border: '1px solid #333', borderRadius: '8px', color: 'white', boxSizing: 'border-box' }} />
+            </div>
+            {error && <p style={{ color: '#e8001c', fontSize: '0.85rem', textAlign: 'center' }}>{error}</p>}
+            <button type="submit" disabled={loading} style={{ width: '100%', padding: '0.9rem', background: '#e8001c', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+                {loading ? 'Verifying...' : 'Access Admin Panel'}
+            </button>
+            <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+                <button onClick={() => setScreen('voter-login')} style={{ background: 'none', border: 'none', color: '#444', fontSize: '0.75rem', cursor: 'pointer' }}>← Back to Voter Login</button>
+            </div>
+        </form>
     </div>
   )
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
-      <nav style={{ padding: '1rem 1.5rem', background: '#111118', borderBottom: '1px solid #222', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', sticky: 'top', zIndex: 50 }}>
+      <nav style={{ padding: '1rem 1.5rem', background: '#111118', borderBottom: '1px solid #222', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 50 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-           <img src="/ust-white.png" style={{ height: '30px' }} />
+           <img src="/ust-white.png" style={{ height: '30px' }} alt="UST" />
            <span style={{ fontWeight: 'bold', fontSize: '0.9rem', letterSpacing: '1px' }}>CNAG-CICS <span style={{ color: '#f5c400' }}>AOA</span></span>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          {user?.isAdmin && (
-            <button 
-              onClick={() => setScreen('admin')} 
-              style={{ background: screen === 'admin' ? '#f5c400' : 'none', border: '1px solid #f5c400', color: screen === 'admin' ? 'black' : '#f5c400', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}
-            >
-              ADMIN
-            </button>
-          )}
-          <button 
-            onClick={() => setScreen('vote')} 
-            style={{ background: screen === 'vote' ? '#f5c400' : 'none', border: '1px solid #f5c400', color: screen === 'vote' ? 'black' : '#f5c400', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}
-          >
-            VOTE
-          </button>
-          <button 
-            onClick={handleSignout} 
-            style={{ background: 'none', border: '1px solid #444', color: '#aaa', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}
-          >
+        <button onClick={handleSignout} style={{ background: 'none', border: '1px solid #444', color: '#aaa', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
             Sign Out
-          </button>
-        </div>
+        </button>
       </nav>
-      {screen === 'vote' ? <VotingPage token={token} /> : <AdminPage token={token} /> }
+      {screen === 'vote' ? <VotingPage token={token} /> : <AdminPage initialToken={token} /> }
     </div>
   )
 }
