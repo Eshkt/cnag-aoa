@@ -258,12 +258,27 @@ app.get('/admin/results', requireAdmin, async (req, res) => {
 
 app.get('/admin/voters', requireAdmin, async (req, res) => {
   try {
-    const voters = await ddbDocClient.send(new ScanCommand({ TableName: HAS_VOTED_TABLE }));
-    const sorted = (voters.Items || []).sort((a: any, b: any) => 
+    const result = await ddbDocClient.send(new ScanCommand({ TableName: HAS_VOTED_TABLE }));
+    const sanitized = (result.Items ?? []).map(item => {
+        const selections = item.selections ? JSON.parse(item.selections) : {};
+        const choice = selections['ratify-aoa']?.toUpperCase() || 'N/A';
+        return {
+            name: item.name ?? 'Unknown',
+            studentNumber: item.voterId ?? item.studentNumber ?? 'N/A',
+            email: item.email ?? 'N/A',
+            choice: choice,
+            timestamp: item.timestamp ?? 'N/A',
+            voterId: item.voterId ?? 'N/A',
+            selections: item.selections // keep for frontend if needed
+        };
+    });
+
+    const sorted = sanitized.sort((a: any, b: any) => 
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
-    res.json(sorted);
+    res.json({ voters: sorted });
   } catch (err) {
+    console.error('VOTERS FETCH ERROR:', err);
     res.status(500).json({ error: 'Fetch failed' });
   }
 });

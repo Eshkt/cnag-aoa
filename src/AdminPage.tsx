@@ -23,6 +23,8 @@ interface Voter {
   timestamp: string;
   voteHash: string;
   selections?: string;
+  studentNumber?: string;
+  choice?: string;
 }
 
 type Tab = 'Overview' | 'Results' | 'Voters' | 'Export';
@@ -133,13 +135,14 @@ export default function AdminPage({ initialToken }: { initialToken: string | nul
         : ['#', 'Full Name', 'Student Number', 'Email', 'Timestamp'];
 
     const rows = voters.map((v, i) => {
-        const selections = v.selections ? JSON.parse(v.selections) : {};
-        const choice = selections['ratify-aoa']?.toUpperCase() || 'N/A';
-        const date = new Date(v.timestamp).toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
+        const choice = v?.choice ?? 'N/A';
+        const date = v?.timestamp && v.timestamp !== 'N/A' 
+            ? new Date(v.timestamp).toLocaleString('en-PH', { timeZone: 'Asia/Manila' })
+            : 'N/A';
         
         return type === 'audit'
-            ? [i + 1, v.name, v.voterId, v.email, choice, date]
-            : [i + 1, v.name, v.voterId, v.email, date];
+            ? [i + 1, v?.name ?? 'Unknown', v?.studentNumber ?? v?.voterId ?? 'N/A', v?.email ?? 'N/A', choice, date]
+            : [i + 1, v?.name ?? 'Unknown', v?.studentNumber ?? v?.voterId ?? 'N/A', v?.email ?? 'N/A', date];
     });
 
     const content = [headers, ...rows].map(e => e.join(",")).join("\n");
@@ -174,10 +177,14 @@ export default function AdminPage({ initialToken }: { initialToken: string | nul
     </div>
   );
 
-  const filteredVoters = Array.isArray(voters) ? voters.filter(v => 
-    v.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    v.voterId.includes(searchTerm)
-  ) : [];
+  // FIX 1 & 3: Robust Guard for filter and array state
+  const filteredVoters = Array.isArray(voters) ? voters.filter(v => {
+    const name = (v?.name ?? '').toLowerCase();
+    const sn = (v?.studentNumber ?? v?.voterId ?? '').toLowerCase();
+    const em = (v?.email ?? '').toLowerCase();
+    const q = searchTerm.toLowerCase();
+    return name.includes(q) || sn.includes(q) || em.includes(q);
+  }) : [];
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1100px', margin: '0 auto', color: 'white' }}>
@@ -280,19 +287,20 @@ export default function AdminPage({ initialToken }: { initialToken: string | nul
                     </thead>
                     <tbody>
                         {filteredVoters.map((v, i) => {
-                            const sel = v.selections ? JSON.parse(v.selections) : {};
-                            const choice = sel['ratify-aoa'];
+                            const choice = v?.choice ?? 'N/A';
                             return (
-                                <tr key={v.voterId} style={{ borderBottom: '1px solid #1a1a1a' }}>
+                                <tr key={v?.voterId ?? i} style={{ borderBottom: '1px solid #1a1a1a' }}>
                                     <td style={{ padding: '1rem', color: '#333' }}>{i + 1}</td>
-                                    <td style={{ padding: '1rem', fontWeight: 'bold' }}>{v.name}</td>
-                                    <td style={{ padding: '1rem' }}>{v.voterId}</td>
-                                    <td style={{ padding: '1rem', color: '#666' }}>{v.email}</td>
+                                    <td style={{ padding: '1rem', fontWeight: 'bold' }}>{v?.name ?? 'Unknown'}</td>
+                                    <td style={{ padding: '1rem' }}>{v?.studentNumber ?? v?.voterId ?? 'N/A'}</td>
+                                    <td style={{ padding: '1rem', color: '#666' }}>{v?.email ?? 'N/A'}</td>
                                     <td style={{ padding: '1rem' }}>
-                                        <span style={{ color: choice === 'yes' ? '#00e868' : '#e8001c', fontWeight: 'bold' }}>{choice?.toUpperCase()}</span>
+                                        <span style={{ color: choice === 'YES' ? '#00e868' : choice === 'NO' ? '#e8001c' : '#444', fontWeight: 'bold' }}>{choice}</span>
                                     </td>
                                     <td style={{ padding: '1rem', fontSize: '0.8rem', color: '#444' }}>
-                                        {new Date(v.timestamp).toLocaleString('en-PH', { timeZone: 'Asia/Manila' })}
+                                        {v?.timestamp && v.timestamp !== 'N/A' 
+                                            ? new Date(v.timestamp).toLocaleString('en-PH', { timeZone: 'Asia/Manila' }) 
+                                            : 'N/A'}
                                     </td>
                                 </tr>
                             )
