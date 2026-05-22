@@ -24,7 +24,7 @@ const HMAC_SECRET_PATH = process.env.HMAC_SECRET_PATH;
 
 let CACHED_SECRET: string | null = null;
 
-// FIX: Hardcoded Admin Emails (Source of Truth)
+// Hardcoded Admin Emails
 const ADMIN_EMAILS = [
   'cnag.cics@ust.edu.ph',
   'franky.parcon.cics@ust.edu.ph'
@@ -91,16 +91,19 @@ const checkVoterSession = async (req: any, res: any, next: any) => {
   }
 };
 
-// FIX: Admin Middleware (Email Header Check - bypasses cold start issues)
+// FIX 2: Admin Middleware (Authorization header with AdminEmail prefix)
 function requireAdmin(req: any, res: any, next: any) {
-  const adminEmail = req.headers['x-admin-email'] || '';
+  const authHeader = req.headers['authorization'] || '';
   
-  if (!ADMIN_EMAILS.includes(adminEmail.toLowerCase().trim())) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  if (authHeader.startsWith('AdminEmail ')) {
+    const email = authHeader.replace('AdminEmail ', '').trim();
+    if (ADMIN_EMAILS.includes(email.toLowerCase().trim())) {
+      req.voter = { email, isAdmin: true };
+      return next();
+    }
   }
   
-  req.voter = { email: adminEmail, isAdmin: true };
-  next();
+  return res.status(401).json({ error: 'Unauthorized' });
 }
 
 // --- 4. MIDDLEWARE ---
@@ -210,7 +213,6 @@ app.post('/submit-vote', checkVoterSession, async (req: any, res) => {
 
 // --- ADMIN ROUTES ---
 
-// Simplified Admin Login (No tokens, just validation)
 app.post('/admin/login', (req, res) => {
     const { email } = req.body;
     if (!email || !ADMIN_EMAILS.includes(email.toLowerCase().trim())) {

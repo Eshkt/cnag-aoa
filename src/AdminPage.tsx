@@ -47,7 +47,7 @@ export default function AdminPage({ initialToken }: { initialToken: string | nul
     return () => clearInterval(interval);
   }, [adminEmail]);
 
-  // FIX: Admin Fetch helper using X-Admin-Email header
+  // FIX 2: Admin Fetch helper using standard Authorization header with "AdminEmail " prefix
   async function adminFetch(path: string, options: any = {}) {
     if (!adminEmail) return null;
     
@@ -55,7 +55,7 @@ export default function AdminPage({ initialToken }: { initialToken: string | nul
       const res = await fetch(`${API_URL}${path}`, {
         ...options,
         headers: {
-          'X-Admin-Email': adminEmail, // Simple header check bypasses cold start issues
+          'Authorization': `AdminEmail ${adminEmail}`, // Uses standard header to avoid custom header preflight issues
           'Content-Type': 'application/json',
           ...(options.headers || {})
         }
@@ -77,7 +77,6 @@ export default function AdminPage({ initialToken }: { initialToken: string | nul
     }
   }
 
-  // FIX: Admin Login handling (no tokens, just email storage)
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
