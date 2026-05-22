@@ -28,8 +28,8 @@ interface Voter {
 type Tab = 'Overview' | 'Results' | 'Voters' | 'Export';
 
 export default function AdminPage({ initialToken }: { initialToken: string | null }) {
-  const [adminToken, setAdminToken] = useState<string | null>(initialToken);
-  const [email, setEmail] = useState('');
+  const [adminEmail, setAdminEmail] = useState<string | null>(localStorage.getItem('adminEmail'));
+  const [emailInput, setEmailInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -39,37 +39,32 @@ export default function AdminPage({ initialToken }: { initialToken: string | nul
   const [voters, setVoters] = useState<Voter[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Sync token if it changes from props
-  useEffect(() => {
-    setAdminToken(initialToken);
-  }, [initialToken]);
-
   // Auto-refresh interval
   useEffect(() => {
-    if (!adminToken) return;
+    if (!adminEmail) return;
     fetchDashboard();
     const interval = setInterval(fetchDashboard, 30000);
     return () => clearInterval(interval);
-  }, [adminToken]);
+  }, [adminEmail]);
 
-  // FIX 2: Centralized fetch helper for Admin
+  // FIX: Admin Fetch helper using X-Admin-Email header
   async function adminFetch(path: string, options: any = {}) {
-    if (!adminToken) return null;
+    if (!adminEmail) return null;
     
     try {
       const res = await fetch(`${API_URL}${path}`, {
         ...options,
         headers: {
-          'Authorization': `Bearer ${adminToken}`, // Always send Bearer token
+          'X-Admin-Email': adminEmail, // Simple header check bypasses cold start issues
           'Content-Type': 'application/json',
           ...(options.headers || {})
         }
       });
 
-      // Handle 401 (Expired or Cold Start reset)
       if (res.status === 401) {
-        setAdminToken(null);
-        setError('Session expired. Please log in again.');
+        setAdminEmail(null);
+        localStorage.removeItem('adminEmail');
+        setError('Session expired or unauthorized. Please log in again.');
         return null;
       }
 
@@ -82,23 +77,26 @@ export default function AdminPage({ initialToken }: { initialToken: string | nul
     }
   }
 
-  // FIX 3: Admin Login handling (trim/lowercase)
+  // FIX: Admin Login handling (no tokens, just email storage)
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError('');
+    const normalizedEmail = emailInput.toLowerCase().trim();
     try {
       const res = await fetch(`${API_URL}/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.toLowerCase().trim() })
+        body: JSON.stringify({ email: normalizedEmail })
       });
       const data = await res.json();
       if (!res.ok) {
           if (res.status === 403) throw new Error('This email is not authorized for admin access.');
           throw new Error(data.error || 'Login failed');
       }
-      setAdminToken(data.token);
+      
+      setAdminEmail(normalizedEmail);
+      localStorage.setItem('adminEmail', normalizedEmail);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -116,7 +114,6 @@ export default function AdminPage({ initialToken }: { initialToken: string | nul
     if (tData) setTurnout(tData);
     if (rData) setResults(rData);
     if (vData) {
-        // Robust array unwrap
         const voterList = Array.isArray(vData) ? vData : (vData.voters ?? vData.items ?? []);
         setVoters(voterList);
     }
@@ -155,7 +152,7 @@ export default function AdminPage({ initialToken }: { initialToken: string | nul
     a.click();
   }
 
-  if (!adminToken) return (
+  if (!adminEmail) return (
     <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', padding: '1rem' }}>
       <form onSubmit={handleLogin} style={{ background: '#111118', padding: '2.5rem', borderRadius: '16px', width: '100%', maxWidth: '380px', border: '1px solid #222' }}>
         <h2 style={{ color: 'white', textAlign: 'center', marginBottom: '2rem' }}>COMELEC ADMIN</h2>
@@ -163,8 +160,8 @@ export default function AdminPage({ initialToken }: { initialToken: string | nul
           <label style={{ display: 'block', color: '#666', fontSize: '0.8rem', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Admin Email</label>
           <input 
             type="email" 
-            value={email} 
-            onChange={e => setEmail(e.target.value)} 
+            value={emailInput} 
+            onChange={e => setEmailInput(e.target.value)} 
             placeholder="admin@ust.edu.ph"
             required
             style={{ width: '100%', padding: '0.8rem', background: '#0a0a0a', border: '1px solid #333', borderRadius: '8px', color: 'white', boxSizing: 'border-box' }}

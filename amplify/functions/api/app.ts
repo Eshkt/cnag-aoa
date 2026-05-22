@@ -9,7 +9,7 @@ import {
   UpdateCommand 
 } from '@aws-sdk/lib-dynamodb';
 import { SSMClient, GetParameterCommand, PutParameterCommand } from '@aws-sdk/client-ssm';
-import { createHmac, timingSafeEqual, randomUUID } from 'crypto';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 const app = express();
 const ddbClient = new DynamoDBClient({});
@@ -24,14 +24,11 @@ const HMAC_SECRET_PATH = process.env.HMAC_SECRET_PATH;
 
 let CACHED_SECRET: string | null = null;
 
-// FIX 1: Hardcoded Admin Emails (Exact list)
+// FIX: Hardcoded Admin Emails (Source of Truth)
 const ADMIN_EMAILS = [
   'cnag.cics@ust.edu.ph',
   'franky.parcon.cics@ust.edu.ph'
 ];
-
-// Map for Admin sessions (module-level, survives Lambda warm starts)
-const adminSessions = new Map<string, number>(); // Map<token, expiryTimestamp>
 
 async function getSecret() {
   if (CACHED_SECRET) return CACHED_SECRET;
@@ -94,26 +91,15 @@ const checkVoterSession = async (req: any, res: any, next: any) => {
   }
 };
 
-// FIX 1: Admin Middleware (Bearer Header Validation)
+// FIX: Admin Middleware (Email Header Check - bypasses cold start issues)
 function requireAdmin(req: any, res: any, next: any) {
-  const authHeader = req.headers['authorization'] || '';
-  const token = authHeader.replace('Bearer ', '').trim();
+  const adminEmail = req.headers['x-admin-email'] || '';
   
-  if (!token) {
-    return res.status(401).json({ error: 'No token provided' });
+  if (!ADMIN_EMAILS.includes(adminEmail.toLowerCase().trim())) {
+    return res.status(401).json({ error: 'Unauthorized' });
   }
   
-  const expiry = adminSessions.get(token);
-  if (!expiry) {
-    return res.status(401).json({ error: 'Invalid token' });
-  }
-  
-  if (Date.now() > expiry) {
-    adminSessions.delete(token);
-    return res.status(401).json({ error: 'Token expired' });
-  }
-  
-  req.voter = { isAdmin: true };
+  req.voter = { email: adminEmail, isAdmin: true };
   next();
 }
 
@@ -136,7 +122,6 @@ app.post('/begin-session', async (req, res) => {
 
   if (!email.toLowerCase().endsWith('@ust.edu.ph')) return res.status(400).json({ error: 'Only @ust.edu.ph emails allowed' });
 
-  // Whitelist admin emails to reject voter login
   if (ADMIN_EMAILS.includes(email.toLowerCase().trim())) {
       return res.status(403).json({ error: 'Admin accounts use /admin login' });
   }
@@ -158,6 +143,7 @@ app.post('/begin-session', async (req, res) => {
     
     res.json({ token });
   } catch (err) {
+    console.error('BEGIN SESSION ERROR:', err);
     res.status(500).json({ error: 'Failed to begin session' });
   }
 });
@@ -217,24 +203,20 @@ app.post('/submit-vote', checkVoterSession, async (req: any, res) => {
 
     res.json({ success: true });
   } catch (err) {
+    console.error('SUBMIT ERROR:', err);
     res.status(500).json({ error: 'Submission failed' });
   }
 });
 
 // --- ADMIN ROUTES ---
 
-// FIX 1: Admin Login with UUID
+// Simplified Admin Login (No tokens, just validation)
 app.post('/admin/login', (req, res) => {
     const { email } = req.body;
     if (!email || !ADMIN_EMAILS.includes(email.toLowerCase().trim())) {
         return res.status(403).json({ error: 'Access denied' });
     }
-
-    const token = randomUUID();
-    const expiry = Date.now() + (4 * 60 * 60 * 1000); // 4 hours
-    adminSessions.set(token, expiry);
-
-    res.json({ token, expiresIn: 14400 });
+    res.json({ success: true });
 });
 
 app.get('/admin/turnout', requireAdmin, async (req, res) => {
