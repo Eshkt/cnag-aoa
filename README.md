@@ -1,73 +1,67 @@
-# React + TypeScript + Vite
+# CNAG-CICS AOA Voting System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A high-integrity, serverless digital governance platform built on AWS, designed for the ratification of the CNAG-CICS (College of Information and Computing Sciences) Articles of Association (AOA) at the University of Santo Tomas (UST).
 
-Currently, two official plugins are available:
+## 🚀 Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+This system replaces traditional paper-based voting with a cryptographically secured, fully auditable digital process. It ensures voter integrity, ballot anonymity, and produces a legally defensible audit trail to satisfy institutional compliance requirements.
 
-## React Compiler
+## 🏗️ Architecture
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The system is built entirely on AWS serverless infrastructure to ensure scalability, security, and cost-efficiency.
 
-## Expanding the ESLint configuration
+### Tech Stack
+- **Frontend:** React, TypeScript, Vite, AWS Amplify Hosting.
+- **Authentication:** Amazon Cognito (Domain restricted to `@ust.edu.ph`).
+- **API Layer:** Amazon API Gateway + AWS Lambda.
+- **Database:** Amazon DynamoDB (On-demand).
+- **Security:** AWS WAF, Secrets Manager (HMAC signing), IAM Least Privilege.
+- **Audit & Compliance:** Amazon S3 (WORM storage/Object Lock), AWS CloudTrail, AWS KMS.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Key Security Features
+- **Cryptographic Ballot Separation:** Uses HMAC-SHA256 to decouple voter identity from the actual vote. Once the secret key is deleted post-event, the link is permanently broken.
+- **Idempotent Voting:** Prevents double-voting via conditional DynamoDB writes.
+- **Immutable Logs:** All administrative actions and audit reports are stored in S3 buckets with COMPLIANCE mode Object Lock.
+- **Voting Window Control:** Controlled via AWS Systems Manager Parameter Store to avoid manual console intervention during live events.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 📁 Project Structure
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- `/amplify`: AWS Amplify Gen 2 backend definitions (Auth, Functions, Storage).
+- `/aoa-voting-stack`: CDK-based infrastructure for auxiliary voting services (Audit reports, Status checks, etc.).
+- `/Context`: Project concept and architecture documentation.
+- `/public` & `/Assets`: Static assets and branding.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 🛠️ Getting Started
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Prerequisites
+- AWS Account
+- Node.js (v18+)
+- AWS CLI & Amplify CLI configured
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Development
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+2. **Run development server:**
+   ```bash
+   npm run dev
+   ```
+3. **Amplify Sandbox (Backend):**
+   ```bash
+   npm run amplify:sandbox
+   ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Deployment
+- Use `npm run amplify:deploy` for the frontend and core backend.
+- Use the `deploy.sh` script for full stack orchestration.
+
+## ⚖️ Compliance & Ethics
+
+This system is designed to meet the requirements of the UST Office of Student Affairs (OSA) and the internal Commission on Elections (COMELEC), ensuring:
+- **Secret Ballot:** Guaranteed through architectural separation of identity and vote.
+- **Verifiable Quorum:** Real-time tracking of eligible participant turnout.
+- **Auditability:** Signed PDF reports generated post-election for institutional review.
+
+---
+*This project is developed for the CNAG-CICS organization.*
